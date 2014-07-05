@@ -1,0 +1,342 @@
+******************************************************************************
+                  TI ARM Linker PC v5.1.5                      
+******************************************************************************
+>> Linked Sat Jul 05 15:10:43 2014
+
+OUTPUT FILE NAME:   <bootLoaderRFV2.out>
+ENTRY POINT SYMBOL: "_c_int00"  address: 200011f3
+
+
+MEMORY CONFIGURATION
+
+         name            origin    length      used     unused   attr    fill
+----------------------  --------  ---------  --------  --------  ----  --------
+  FLASH                 00000000   00040000  000017df  0003e821  R  X
+  SRAM                  20000000   00008000  00001bd3  0000642d  RW X
+
+
+SEGMENT ALLOCATION MAP
+
+run origin  load origin   length   init length attrs members
+----------  ----------- ---------- ----------- ----- -------
+000017d0    000017d0    00000014   00000014    r--
+  000017d0    000017d0    00000014   00000014    r-- .cinit
+20000000    00000000    000017cb   000017cb    r-x
+  20000000    00000000    00000044   00000044    r-- .intvecs
+  20000044    00000044    0000157a   0000157a    r-x .text
+  200015c0    000015c0    0000020b   0000020b    r-- .const
+200017d0    200017d0    00000408   00000000    rw-
+  200017d0    200017d0    00000005   00000000    rw- .bss
+  200017d8    200017d8    00000400   00000000    rw- .stack
+
+
+SECTION ALLOCATION MAP
+
+ output                                  attributes/
+section   page    origin      length       input sections
+--------  ----  ----------  ----------   ----------------
+.intvecs   0    00000000    00000044     RUN ADDR = 20000000
+                  00000000    00000044     tm4c123gh6pm_startup_ccs.obj (.intvecs)
+
+.text      0    00000044    0000157a     RUN ADDR = 20000044
+                  00000044    00000864     nRF24L01.obj (.text)
+                  000008a8    00000428     main.obj (.text)
+                  00000cd0    00000130     driverlib.lib : gpio.obj (.text:GPIOPadConfigSet)
+                  00000e00    00000118                   : sysctl.obj (.text:SysCtlClockGet)
+                  00000f18    000000f0                   : sysctl.obj (.text:SysCtlClockSet)
+                  00001008    000000dc     TM4C123_nRF24L01.obj (.text:initSpiForRF)
+                  000010e4    0000008c     main.obj (.text:initRfModule)
+                  00001170    00000084     tm4c123gh6pm_startup_ccs.obj (.text)
+                  000011f4    00000060     driverlib.lib : interrupt.obj (.text:IntEnable)
+                  00001254    00000056                   : gpio.obj (.text:GPIOIntTypeSet)
+                  000012aa    00000002     --HOLE-- [fill = 0]
+                  000012ac    00000048                   : gpio.obj (.text:GPIOPinConfigure)
+                  000012f4    00000042                   : ssi.obj (.text:SSIConfigSetExpClk)
+                  00001336    00000002     --HOLE-- [fill = 0]
+                  00001338    00000034     nRF24L01.obj (.text:RF24_readRegister)
+                  0000136c    00000034     nRF24L01.obj (.text:RF24_writeRegister)
+                  000013a0    00000034     driverlib.lib : sysctl.obj (.text:SysCtlPeripheralEnable)
+                  000013d4    0000002c     TM4C123_nRF24L01.obj (.text)
+                  00001400    0000002a     driverlib.lib : gpio.obj (.text:GPIODirModeSet)
+                  0000142a    00000002     --HOLE-- [fill = 0]
+                  0000142c    00000024                   : interrupt.obj (.text:IntPrioritySet)
+                  00001450    00000024     main.obj (.text:initLED)
+                  00001474    0000001c     TM4C123_nRF24L01.obj (.text:clearRfCE)
+                  00001490    0000001c     TM4C123_nRF24L01.obj (.text:setRfCE)
+                  000014ac    00000018     driverlib.lib : gpio.obj (.text:GPIOPinTypeGPIOOutput)
+                  000014c4    00000016     nRF24L01.obj (.text:RF24_setConfigureRegister)
+                  000014da    00000012     driverlib.lib : gpio.obj (.text:GPIOPinTypeGPIOInput)
+                  000014ec    00000012                   : gpio.obj (.text:GPIOPinTypeSSI)
+                  000014fe    00000012                   : ssi.obj (.text:SSIDataGetNonBlocking)
+                  00001510    00000012     rtsv7M4_T_le_v4SPD16_eabi.lib : copy_zero_init.obj (.text:decompress:ZI)
+                  00001522    00000002     --HOLE-- [fill = 0]
+                  00001524    00000010     driverlib.lib : fpu.obj (.text:FPULazyStackingEnable)
+                  00001534    00000010     TM4C123_nRF24L01.obj (.text:clearRfCSN)
+                  00001544    00000010     TM4C123_nRF24L01.obj (.text:setRfCSN)
+                  00001554    0000000c     driverlib.lib : cpu.obj (.text:CPUcpsie)
+                  00001560    0000000c                   : gpio.obj (.text:GPIOIntEnable)
+                  0000156c    0000000c                   : ssi.obj (.text:SSIDataGet)
+                  00001578    0000000c     TM4C123_nRF24L01.obj (.text:getCEState)
+                  00001584    0000000a     driverlib.lib : interrupt.obj (.text:IntMasterEnable)
+                  0000158e    0000000a                   : ssi.obj (.text:SSIDataPut)
+                  00001598    0000000a                   : ssi.obj (.text:SSIDisable)
+                  000015a2    0000000a                   : ssi.obj (.text:SSIEnable)
+                  000015ac    00000006                   : gpio.obj (.text:GPIOPinRead)
+                  000015b2    00000006                   : gpio.obj (.text:GPIOPinWrite)
+                  000015b8    00000006                   : sysctl.obj (.text:SysCtlDelay)
+
+.const     0    000015c0    0000020b     RUN ADDR = 200015c0
+                  000015c0    0000009c     driverlib.lib : interrupt.obj (.const:g_pui32Regs)
+                  0000165c    00000090                   : gpio.obj (.const:g_pui32GPIOBaseAddrs)
+                  000016ec    00000070                   : interrupt.obj (.const)
+                  0000175c    0000006c                   : sysctl.obj (.const:g_pui32Xtals)
+                  000017c8    00000003     main.obj (.const:.string)
+
+.data      0    000017cb    00000000     UNINITIALIZEDRUN ADDR = 200017cb
+
+.cinit     0    000017d0    00000014     
+                  000017d0    00000008     (.cinit..bss.load) [load image, compression = zero_init]
+                  000017d8    00000004     (__TI_handler_table)
+                  000017dc    00000008     (__TI_cinit_table)
+
+.bss       0    200017d0    00000005     UNINITIALIZED
+                  200017d0    00000001     (.common:CEState)
+                  200017d1    00000001     (.common:addressWidth)
+                  200017d2    00000001     (.common:crcConfig)
+                  200017d3    00000001     (.common:features)
+                  200017d4    00000001     (.common:status)
+
+.stack     0    200017d8    00000400     UNINITIALIZED
+                  200017d8    00000400     tm4c123gh6pm_startup_ccs.obj (.stack)
+
+
+LINKER GENERATED COPY TABLES
+
+__TI_cinit_table @ 000017dc records: 1, size/record: 8, table size: 8
+	.bss: load addr=000017d0, load size=00000008 bytes, run addr=200017d0, run size=00000005 bytes, compression=zero_init
+
+
+LINKER GENERATED HANDLER TABLE
+
+__TI_handler_table @ 000017d8 records: 1, size/record: 4, table size: 4
+	index: 0, handler: __TI_zero_init
+
+
+GLOBAL SYMBOLS: SORTED ALPHABETICALLY BY Name 
+
+address    name
+--------   ----
+20001555   CPUcpsie
+200011d1   CallApplication
+20000c3d   CheckForceUpdate
+200011ed   Delay
+20001525   FPULazyStackingEnable
+20001401   GPIODirModeSet
+20001561   GPIOIntEnable
+20001255   GPIOIntTypeSet
+20000cd1   GPIOPadConfigSet
+200012ad   GPIOPinConfigure
+200015ad   GPIOPinRead
+200014db   GPIOPinTypeGPIOInput
+200014ad   GPIOPinTypeGPIOOutput
+200014ed   GPIOPinTypeSSI
+200015b3   GPIOPinWrite
+200011f5   IntEnable
+20001585   IntMasterEnable
+2000142d   IntPrioritySet
+2000066b   RF24_PIPE_close
+200006c7   RF24_PIPE_closeAll
+20000759   RF24_PIPE_isOpen
+200006e3   RF24_PIPE_open
+20000799   RF24_PIPE_setPacketSize
+20000895   RF24_RETRANS_getLastRetransmits
+2000085b   RF24_RETRANS_setCount
+20000821   RF24_RETRANS_setDelay
+200005ad   RF24_RX_activate
+20000651   RF24_RX_carrierDetection
+20000597   RF24_RX_flush
+20000545   RF24_RX_getPayloadData
+20000521   RF24_RX_getPayloadWidth
+200005cf   RF24_RX_isEmpty
+200005eb   RF24_RX_sendAckWithPayload
+200004b3   RF24_RX_setAddress
+2000047d   RF24_TX_activate
+20000451   RF24_TX_flush
+2000049f   RF24_TX_pulseTransmit
+20000467   RF24_TX_reuseLastPayload
+2000035d   RF24_TX_setAddress
+200003a9   RF24_TX_writePayloadAck
+200003fd   RF24_TX_writePayloadNoAck
+2000031f   RF24_clearIrqFlag
+20000125   RF24_disableFeatures
+200000eb   RF24_enableFeatures
+200001d5   RF24_getCurrentState
+200002eb   RF24_getIrqFlag
+2000014f   RF24_getLostPackets
+20000045   RF24_init
+2000015d   RF24_isAlive
+20001339   RF24_readRegister
+20000285   RF24_scan
+200001b7   RF24_setAddressWidth
+200001a1   RF24_setChannel
+200014c5   RF24_setConfigureRegister
+20000183   RF24_setSpeedAndPower
+2000022f   RF24_startPowerDown
+20000243   RF24_startStandby
+2000136d   RF24_writeRegister
+200011b5   ResetISR
+200013d5   SPI_sendAndGetData
+200012f5   SSIConfigSetExpClk
+2000156d   SSIDataGet
+200014ff   SSIDataGetNonBlocking
+2000158f   SSIDataPut
+20001599   SSIDisable
+200015a3   SSIEnable
+20000e01   SysCtlClockGet
+20000f19   SysCtlClockSet
+200015b9   SysCtlDelay
+200013a1   SysCtlPeripheralEnable
+200009e3   Updater
+20000000   Vectors
+20001bd8   __STACK_END
+00000400   __STACK_SIZE
+20001bd8   __STACK_TOP
+000017dc   __TI_CINIT_Base
+000017e4   __TI_CINIT_Limit
+000017d8   __TI_Handler_Table_Base
+000017dc   __TI_Handler_Table_Limit
+000017d0   __TI_static_base__
+20001511   __TI_zero_init
+ffffffff   __binit__
+ffffffff   __c_args__
+200017d8   __stack
+200011f3   _c_int00
+ffffffff   binit
+20001bd8   bss_end
+200017d0   bss_run
+00000408   bss_size
+20001475   clearRfCE
+20001535   clearRfCSN
+200009a1   convertByteToUINT32
+20001579   getCEState
+20001451   initLED
+200010e5   initRfModule
+20001009   initSpiForRF
+00000000   init_load
+20000000   init_run
+000017cb   init_size
+200008a9   readDataRF
+200013ef   rfDelayLoop
+20001491   setRfCE
+20001545   setRfCSN
+
+
+GLOBAL SYMBOLS: SORTED BY Symbol Address 
+
+address    name
+--------   ----
+00000000   init_load
+00000400   __STACK_SIZE
+00000408   bss_size
+000017cb   init_size
+000017d0   __TI_static_base__
+000017d8   __TI_Handler_Table_Base
+000017dc   __TI_CINIT_Base
+000017dc   __TI_Handler_Table_Limit
+000017e4   __TI_CINIT_Limit
+20000000   Vectors
+20000000   init_run
+20000045   RF24_init
+200000eb   RF24_enableFeatures
+20000125   RF24_disableFeatures
+2000014f   RF24_getLostPackets
+2000015d   RF24_isAlive
+20000183   RF24_setSpeedAndPower
+200001a1   RF24_setChannel
+200001b7   RF24_setAddressWidth
+200001d5   RF24_getCurrentState
+2000022f   RF24_startPowerDown
+20000243   RF24_startStandby
+20000285   RF24_scan
+200002eb   RF24_getIrqFlag
+2000031f   RF24_clearIrqFlag
+2000035d   RF24_TX_setAddress
+200003a9   RF24_TX_writePayloadAck
+200003fd   RF24_TX_writePayloadNoAck
+20000451   RF24_TX_flush
+20000467   RF24_TX_reuseLastPayload
+2000047d   RF24_TX_activate
+2000049f   RF24_TX_pulseTransmit
+200004b3   RF24_RX_setAddress
+20000521   RF24_RX_getPayloadWidth
+20000545   RF24_RX_getPayloadData
+20000597   RF24_RX_flush
+200005ad   RF24_RX_activate
+200005cf   RF24_RX_isEmpty
+200005eb   RF24_RX_sendAckWithPayload
+20000651   RF24_RX_carrierDetection
+2000066b   RF24_PIPE_close
+200006c7   RF24_PIPE_closeAll
+200006e3   RF24_PIPE_open
+20000759   RF24_PIPE_isOpen
+20000799   RF24_PIPE_setPacketSize
+20000821   RF24_RETRANS_setDelay
+2000085b   RF24_RETRANS_setCount
+20000895   RF24_RETRANS_getLastRetransmits
+200008a9   readDataRF
+200009a1   convertByteToUINT32
+200009e3   Updater
+20000c3d   CheckForceUpdate
+20000cd1   GPIOPadConfigSet
+20000e01   SysCtlClockGet
+20000f19   SysCtlClockSet
+20001009   initSpiForRF
+200010e5   initRfModule
+200011b5   ResetISR
+200011d1   CallApplication
+200011ed   Delay
+200011f3   _c_int00
+200011f5   IntEnable
+20001255   GPIOIntTypeSet
+200012ad   GPIOPinConfigure
+200012f5   SSIConfigSetExpClk
+20001339   RF24_readRegister
+2000136d   RF24_writeRegister
+200013a1   SysCtlPeripheralEnable
+200013d5   SPI_sendAndGetData
+200013ef   rfDelayLoop
+20001401   GPIODirModeSet
+2000142d   IntPrioritySet
+20001451   initLED
+20001475   clearRfCE
+20001491   setRfCE
+200014ad   GPIOPinTypeGPIOOutput
+200014c5   RF24_setConfigureRegister
+200014db   GPIOPinTypeGPIOInput
+200014ed   GPIOPinTypeSSI
+200014ff   SSIDataGetNonBlocking
+20001511   __TI_zero_init
+20001525   FPULazyStackingEnable
+20001535   clearRfCSN
+20001545   setRfCSN
+20001555   CPUcpsie
+20001561   GPIOIntEnable
+2000156d   SSIDataGet
+20001579   getCEState
+20001585   IntMasterEnable
+2000158f   SSIDataPut
+20001599   SSIDisable
+200015a3   SSIEnable
+200015ad   GPIOPinRead
+200015b3   GPIOPinWrite
+200015b9   SysCtlDelay
+200017d0   bss_run
+200017d8   __stack
+20001bd8   __STACK_END
+20001bd8   __STACK_TOP
+20001bd8   bss_end
+ffffffff   __binit__
+ffffffff   __c_args__
+ffffffff   binit
+
+[103 symbols]

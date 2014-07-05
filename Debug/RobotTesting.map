@@ -1,0 +1,587 @@
+******************************************************************************
+                  TI ARM Linker PC v5.1.5                      
+******************************************************************************
+>> Linked Tue Jun 10 22:49:22 2014
+
+OUTPUT FILE NAME:   <RobotTesting.out>
+ENTRY POINT SYMBOL: "_c_int00"  address: 0000209d
+
+
+MEMORY CONFIGURATION
+
+         name            origin    length      used     unused   attr    fill
+----------------------  --------  ---------  --------  --------  ----  --------
+  FLASH                 00000000   00040000  00002afb  0003d505  R  X
+  SRAM                  20000000   00008000  00000cf9  00007307  RW X
+
+
+SEGMENT ALLOCATION MAP
+
+run origin  load origin   length   init length attrs members
+----------  ----------- ---------- ----------- ----- -------
+00000000    00000000    00002b00   00002b00    r-x
+  00000000    00000000    0000026c   0000026c    r-- .intvecs
+  0000026c    0000026c    00002644   00002644    r-x .text
+  000028b0    000028b0    0000020b   0000020b    r-- .const
+  00002ac0    00002ac0    00000040   00000040    r-- .cinit
+20000000    20000000    00000cfc   00000000    rw-
+  20000000    20000000    000008dd   00000000    rw- .bss
+  200008e0    200008e0    00000400   00000000    rw- .stack
+  20000ce0    20000ce0    0000001c   00000000    rw- .data
+
+
+SECTION ALLOCATION MAP
+
+ output                                  attributes/
+section   page    origin      length       input sections
+--------  ----  ----------  ----------   ----------------
+.intvecs   0    00000000    0000026c     
+                  00000000    0000026c     tm4c123gh6pm_startup_ccs.obj (.intvecs)
+
+.init_array 
+*          0    00000000    00000000     UNINITIALIZED
+
+.text      0    0000026c    00002644     
+                  0000026c    00000864     nRF24L01.obj (.text)
+                  00000ad0    00000440     MainBoardDriver.obj (.text:testAllMotorModes)
+                  00000f10    00000290     MainBoardDriver.obj (.text)
+                  000011a0    00000158     main.obj (.text:RF24_IntHandler)
+                  000012f8    00000130     driverlib.lib : gpio.obj (.text:GPIOPadConfigSet)
+                  00001428    00000128     MainBoardDriver.obj (.text:initDistanceSensingModules)
+                  00001550    00000118     driverlib.lib : sysctl.obj (.text:SysCtlClockGet)
+                  00001668    00000108     MainBoardDriver.obj (.text:initMotor)
+                  00001770    000000f0     driverlib.lib : sysctl.obj (.text:SysCtlClockSet)
+                  00001860    000000ec     MainBoardDriver.obj (.text:initSpeaker)
+                  0000194c    000000dc     TM4C123_nRF24L01.obj (.text:initSpiForRF)
+                  00001a28    000000d8     MainBoardDriver.obj (.text:testRfTransmission)
+                  00001b00    0000009c     rtsv7M4_T_le_v4SPD16_eabi.lib : memcpy_t2.obj (.text)
+                  00001b9c    00000094                                   : auto_init.obj (.text)
+                  00001c30    0000008c     MainBoardDriver.obj (.text:initRfModule)
+                  00001cbc    00000080     driverlib.lib : adc.obj (.text:ADCSequenceStepConfigure)
+                  00001d3c    00000080     main.obj (.text)
+                  00001dbc    00000080     driverlib.lib : udma.obj (.text:uDMAChannelTransferSet)
+                  00001e3c    00000060                   : interrupt.obj (.text:IntEnable)
+                  00001e9c    0000005e     rtsv7M4_T_le_v4SPD16_eabi.lib : copy_decompress_rle.obj (.text)
+                  00001efa    00000002     --HOLE-- [fill = 0]
+                  00001efc    0000005c     driverlib.lib : timer.obj (.text:TimerConfigure)
+                  00001f58    00000058                   : timer.obj (.text:TimerControlTrigger)
+                  00001fb0    00000056                   : gpio.obj (.text:GPIOIntTypeSet)
+                  00002006    0000004c     CustomTivaDrivers.obj (.text)
+                  00002052    00000002     --HOLE-- [fill = 0]
+                  00002054    00000048     driverlib.lib : gpio.obj (.text:GPIOPinConfigure)
+                  0000209c    00000048     rtsv7M4_T_le_v4SPD16_eabi.lib : boot.obj (.text)
+                  000020e4    00000048     driverlib.lib : udma.obj (.text:uDMAChannelAttributeDisable)
+                  0000212c    00000044     rtsv7M4_T_le_v4SPD16_eabi.lib : cpy_tbl.obj (.text)
+                  00002170    00000044                                   : exit.obj (.text)
+                  000021b4    00000042     driverlib.lib : ssi.obj (.text:SSIConfigSetExpClk)
+                  000021f6    00000002     --HOLE-- [fill = 0]
+                  000021f8    00000040     MainBoardDriver.obj (.text:testCarrierDetection)
+                  00002238    0000003e     driverlib.lib : adc.obj (.text:ADCSequenceConfigure)
+                  00002276    0000003c     MainBoardDriver.obj (.text:sendTestData)
+                  000022b2    00000002     --HOLE-- [fill = 0]
+                  000022b4    00000034     nRF24L01.obj (.text:RF24_readRegister)
+                  000022e8    00000034     nRF24L01.obj (.text:RF24_writeRegister)
+                  0000231c    00000034     driverlib.lib : sysctl.obj (.text:SysCtlPeripheralEnable)
+                  00002350    0000002e                   : adc.obj (.text:ADCIntStatus)
+                  0000237e    0000002e     MainBoardDriver.obj (.text:setMotorDirection)
+                  000023ac    0000002c     TM4C123_nRF24L01.obj (.text)
+                  000023d8    0000002c     MainBoardDriver.obj (.text:setMotorSpeed)
+                  00002404    0000002c     driverlib.lib : udma.obj (.text:uDMAChannelAssign)
+                  00002430    0000002a                   : gpio.obj (.text:GPIODirModeSet)
+                  0000245a    00000002     --HOLE-- [fill = 0]
+                  0000245c    00000028                   : udma.obj (.text:uDMAChannelModeGet)
+                  00002484    00000024                   : interrupt.obj (.text:IntPrioritySet)
+                  000024a8    00000024                   : udma.obj (.text:uDMAChannelControlSet)
+                  000024cc    00000022                   : pwm.obj (.text:PWMGenConfigure)
+                  000024ee    00000002     --HOLE-- [fill = 0]
+                  000024f0    00000020     MainBoardDriver.obj (.text:initLED)
+                  00002510    00000020     MainBoardDriver.obj (.text:startSamplingMicSignals)
+                  00002530    00000020     MainBoardDriver.obj (.text:turnOnLED)
+                  00002550    0000001e     driverlib.lib : pwm.obj (.text:PWMPulseWidthSet)
+                  0000256e    00000002     --HOLE-- [fill = 0]
+                  00002570    0000001c     TM4C123_nRF24L01.obj (.text:clearRfCE)
+                  0000258c    0000001c     MainBoardDriver.obj (.text:groundAdjacentADCPins)
+                  000025a8    0000001c     TM4C123_nRF24L01.obj (.text:setRfCE)
+                  000025c4    0000001c     MainBoardDriver.obj (.text:startSpeaker)
+                  000025e0    0000001c     MainBoardDriver.obj (.text:turnOffLED)
+                  000025fc    00000018     driverlib.lib : gpio.obj (.text:GPIOPinTypeGPIOOutput)
+                  00002614    00000018     rtsv7M4_T_le_v4SPD16_eabi.lib : args_main.obj (.text)
+                  0000262c    00000018     driverlib.lib : udma.obj (.text:uDMAChannelEnable)
+                  00002644    00000016     nRF24L01.obj (.text:RF24_setConfigureRegister)
+                  0000265a    00000002     --HOLE-- [fill = 0]
+                  0000265c    00000014     driverlib.lib : sysctl.obj (.text:SysCtlPWMClockSet)
+                  00002670    00000014                   : timer.obj (.text:TimerDisable)
+                  00002684    00000014     rtsv7M4_T_le_v4SPD16_eabi.lib : _lock.obj (.text)
+                  00002698    00000012     driverlib.lib : adc.obj (.text:ADCHardwareOversampleConfigure)
+                  000026aa    00000012                   : gpio.obj (.text:GPIOPinTypeADC)
+                  000026bc    00000012                   : gpio.obj (.text:GPIOPinTypeGPIOInput)
+                  000026ce    00000012                   : gpio.obj (.text:GPIOPinTypePWM)
+                  000026e0    00000012                   : gpio.obj (.text:GPIOPinTypeSSI)
+                  000026f2    00000012                   : pwm.obj (.text:PWMOutputState)
+                  00002704    00000012                   : ssi.obj (.text:SSIDataGetNonBlocking)
+                  00002716    00000012                   : timer.obj (.text:TimerLoadSet)
+                  00002728    00000012     rtsv7M4_T_le_v4SPD16_eabi.lib : copy_zero_init.obj (.text:decompress:ZI)
+                  0000273a    00000010     driverlib.lib : adc.obj (.text:ADCSequenceDMAEnable)
+                  0000274a    00000010                   : pwm.obj (.text:PWMGenPeriodSet)
+                  0000275a    00000010     TM4C123_nRF24L01.obj (.text:clearRfCSN)
+                  0000276a    00000010     TM4C123_nRF24L01.obj (.text:setRfCSN)
+                  0000277a    00000002     --HOLE-- [fill = 0]
+                  0000277c    00000010     driverlib.lib : udma.obj (.text:uDMAEnable)
+                  0000278c    0000000e                   : adc.obj (.text:ADCSequenceEnable)
+                  0000279a    0000000e                   : gpio.obj (.text:GPIOIntStatus)
+                  000027a8    0000000e                   : timer.obj (.text:TimerEnable)
+                  000027b6    0000000e     rtsv7M4_T_le_v4SPD16_eabi.lib : copy_decompress_none.obj (.text:decompress:none)
+                  000027c4    0000000c     driverlib.lib : cpu.obj (.text:CPUcpsie)
+                  000027d0    0000000c                   : gpio.obj (.text:GPIOIntEnable)
+                  000027dc    0000000c                   : pwm.obj (.text:PWMGenDisable)
+                  000027e8    0000000c                   : pwm.obj (.text:PWMGenEnable)
+                  000027f4    0000000c                   : ssi.obj (.text:SSIDataGet)
+                  00002800    0000000c     MainBoardDriver.obj (.text:disableMOTOR)
+                  0000280c    0000000c     MainBoardDriver.obj (.text:enableMOTOR)
+                  00002818    0000000c     TM4C123_nRF24L01.obj (.text:getCEState)
+                  00002824    0000000c     tm4c123gh6pm_startup_ccs.obj (.text)
+                  00002830    0000000c     driverlib.lib : udma.obj (.text:uDMAControlBaseSet)
+                  0000283c    0000000c                   : udma.obj (.text:uDMAErrorStatusClear)
+                  00002848    0000000c                   : udma.obj (.text:uDMAErrorStatusGet)
+                  00002854    0000000a                   : adc.obj (.text:ADCIntClear)
+                  0000285e    0000000a                   : interrupt.obj (.text:IntMasterEnable)
+                  00002868    0000000a                   : ssi.obj (.text:SSIDataPut)
+                  00002872    0000000a                   : ssi.obj (.text:SSIDisable)
+                  0000287c    0000000a                   : ssi.obj (.text:SSIEnable)
+                  00002886    00000008                   : timer.obj (.text:TimerIntEnable)
+                  0000288e    00000006                   : gpio.obj (.text:GPIOIntClear)
+                  00002894    00000006                   : gpio.obj (.text:GPIOPinRead)
+                  0000289a    00000006                   : gpio.obj (.text:GPIOPinWrite)
+                  000028a0    00000006                   : sysctl.obj (.text:SysCtlDelay)
+                  000028a6    00000006     rtsv7M4_T_le_v4SPD16_eabi.lib : copy_decompress_rle.obj (.text:decompress:rle24)
+                  000028ac    00000004     driverlib.lib : timer.obj (.text:TimerIntClear)
+
+.const     0    000028b0    0000020b     
+                  000028b0    0000009c     driverlib.lib : interrupt.obj (.const:g_pui32Regs)
+                  0000294c    00000090                   : gpio.obj (.const:g_pui32GPIOBaseAddrs)
+                  000029dc    00000070                   : interrupt.obj (.const)
+                  00002a4c    0000006c                   : sysctl.obj (.const:g_pui32Xtals)
+                  00002ab8    00000003     MainBoardDriver.obj (.const:.string)
+
+.cinit     0    00002ac0    00000040     
+                  00002ac0    00000016     (.cinit..data.load) [load image, compression = rle]
+                  00002ad6    00000002     --HOLE-- [fill = 0]
+                  00002ad8    0000000c     (__TI_handler_table)
+                  00002ae4    00000004     --HOLE-- [fill = 0]
+                  00002ae8    00000008     (.cinit..bss.load) [load image, compression = zero_init]
+                  00002af0    00000010     (__TI_cinit_table)
+
+.bss       0    20000000    000008dd     UNINITIALIZED
+                  20000000    00000400     MainBoardDriver.obj (.bss:ui8ControlTable)
+                  20000400    00000258     main.obj (.bss:g_ui16ADC0Result)
+                  20000658    00000258     main.obj (.bss:g_ui16ADC1Result)
+                  200008b0    00000020     (.common:RF24_RX_buffer)
+                  200008d0    00000004     (.common:g_ui32SysTickCount)
+                  200008d4    00000004     (.common:ui32PWMPeriod)
+                  200008d8    00000001     (.common:CEState)
+                  200008d9    00000001     (.common:addressWidth)
+                  200008da    00000001     (.common:crcConfig)
+                  200008db    00000001     (.common:features)
+                  200008dc    00000001     (.common:status)
+
+.stack     0    200008e0    00000400     UNINITIALIZED
+                  200008e0    00000400     --HOLE--
+
+.data      0    20000ce0    0000001c     UNINITIALIZED
+                  20000ce0    00000008     MainBoardDriver.obj (.data)
+                  20000ce8    00000008     rtsv7M4_T_le_v4SPD16_eabi.lib : _lock.obj (.data)
+                  20000cf0    00000008                                   : exit.obj (.data)
+                  20000cf8    00000004                                   : stkdepth_vars.obj (.data)
+
+
+LINKER GENERATED COPY TABLES
+
+__TI_cinit_table @ 00002af0 records: 2, size/record: 8, table size: 16
+	.data: load addr=00002ac0, load size=00000016 bytes, run addr=20000ce0, run size=0000001c bytes, compression=rle
+	.bss: load addr=00002ae8, load size=00000008 bytes, run addr=20000000, run size=000008dd bytes, compression=zero_init
+
+
+LINKER GENERATED HANDLER TABLE
+
+__TI_handler_table @ 00002ad8 records: 3, size/record: 4, table size: 12
+	index: 0, handler: __TI_decompress_rle24
+	index: 1, handler: __TI_decompress_none
+	index: 2, handler: __TI_zero_init
+
+
+GLOBAL SYMBOLS: SORTED ALPHABETICALLY BY Name 
+
+address    name
+--------   ----
+00000f8f   ADC0IntHandler
+00000fe7   ADC1IntHandler
+0000203d   ADCDitherDisable
+00002027   ADCDitherEnable
+00002699   ADCHardwareOversampleConfigure
+00002855   ADCIntClear
+00002351   ADCIntStatus
+00002239   ADCSequenceConfigure
+0000273b   ADCSequenceDMAEnable
+0000278d   ADCSequenceEnable
+00001cbd   ADCSequenceStepConfigure
+00002171   C$$EXIT
+000027c5   CPUcpsie
+00001d97   GPIOAIntHandler
+00002431   GPIODirModeSet
+0000288f   GPIOIntClear
+000027d1   GPIOIntEnable
+0000279b   GPIOIntStatus
+00001fb1   GPIOIntTypeSet
+000012f9   GPIOPadConfigSet
+00002055   GPIOPinConfigure
+00002895   GPIOPinRead
+00002007   GPIOPinToggle
+000026ab   GPIOPinTypeADC
+000026bd   GPIOPinTypeGPIOInput
+000025fd   GPIOPinTypeGPIOOutput
+000026cf   GPIOPinTypePWM
+000026e1   GPIOPinTypeSSI
+0000289b   GPIOPinWrite
+00001e3d   IntEnable
+0000285f   IntMasterEnable
+00002485   IntPrioritySet
+000024cd   PWMGenConfigure
+000027dd   PWMGenDisable
+000027e9   PWMGenEnable
+0000274b   PWMGenPeriodSet
+000026f3   PWMOutputState
+00002551   PWMPulseWidthSet
+000011a1   RF24_IntHandler
+00000893   RF24_PIPE_close
+000008ef   RF24_PIPE_closeAll
+00000981   RF24_PIPE_isOpen
+0000090b   RF24_PIPE_open
+000009c1   RF24_PIPE_setPacketSize
+00000abd   RF24_RETRANS_getLastRetransmits
+00000a83   RF24_RETRANS_setCount
+00000a49   RF24_RETRANS_setDelay
+000007d5   RF24_RX_activate
+200008b0   RF24_RX_buffer
+00000879   RF24_RX_carrierDetection
+000007bf   RF24_RX_flush
+0000076d   RF24_RX_getPayloadData
+00000749   RF24_RX_getPayloadWidth
+000007f7   RF24_RX_isEmpty
+00000813   RF24_RX_sendAckWithPayload
+000006db   RF24_RX_setAddress
+000006a5   RF24_TX_activate
+00000679   RF24_TX_flush
+000006c7   RF24_TX_pulseTransmit
+0000068f   RF24_TX_reuseLastPayload
+00000585   RF24_TX_setAddress
+000005d1   RF24_TX_writePayloadAck
+00000625   RF24_TX_writePayloadNoAck
+00000547   RF24_clearIrqFlag
+0000034d   RF24_disableFeatures
+00000313   RF24_enableFeatures
+000003fd   RF24_getCurrentState
+00000513   RF24_getIrqFlag
+00000377   RF24_getLostPackets
+0000026d   RF24_init
+00000385   RF24_isAlive
+000022b5   RF24_readRegister
+000004ad   RF24_scan
+000003df   RF24_setAddressWidth
+000003c9   RF24_setChannel
+00002645   RF24_setConfigureRegister
+000003ab   RF24_setSpeedAndPower
+00000457   RF24_startPowerDown
+0000046b   RF24_startStandby
+000022e9   RF24_writeRegister
+00002825   ResetISR
+UNDEFED    SHT$$INIT_ARRAY$$Base
+UNDEFED    SHT$$INIT_ARRAY$$Limit
+000023ad   SPI_sendAndGetData
+000021b5   SSIConfigSetExpClk
+000027f5   SSIDataGet
+00002705   SSIDataGetNonBlocking
+00002869   SSIDataPut
+00002873   SSIDisable
+0000287d   SSIEnable
+00001059   SpeakerTimerIntHandler
+00001551   SysCtlClockGet
+00001771   SysCtlClockSet
+000028a1   SysCtlDelay
+0000265d   SysCtlPWMClockSet
+0000231d   SysCtlPeripheralEnable
+00001d3d   SysTickHandler
+00001efd   TimerConfigure
+00001f59   TimerControlTrigger
+00002671   TimerDisable
+000027a9   TimerEnable
+000028ad   TimerIntClear
+00002887   TimerIntEnable
+00002717   TimerLoadSet
+20000ce0   __STACK_END
+00000400   __STACK_SIZE
+20000ae0   __STACK_TOP
+00002af0   __TI_CINIT_Base
+00002b00   __TI_CINIT_Limit
+00002ad8   __TI_Handler_Table_Base
+00002ae4   __TI_Handler_Table_Limit
+00000001   __TI_args_main
+00001b9d   __TI_auto_init
+20000cf0   __TI_cleanup_ptr
+000027b7   __TI_decompress_none
+000028a7   __TI_decompress_rle24
+20000cf4   __TI_dtors_ptr
+00000000   __TI_static_base__
+00002729   __TI_zero_init
+00001b01   __aeabi_memcpy
+00001b01   __aeabi_memcpy4
+00001b01   __aeabi_memcpy8
+ffffffff   __binit__
+ffffffff   __c_args__
+200008e0   __stack
+00002615   _args_main
+0000209d   _c_int00
+20000ce8   _lock
+00002693   _nop
+0000268b   _register_lock
+00002685   _register_unlock
+20000cec   _unlock
+00002175   abort
+ffffffff   binit
+00002571   clearRfCE
+0000275b   clearRfCSN
+0000212d   copy_in
+00002801   disableMOTOR
+0000280d   enableMOTOR
+0000217d   exit
+00000000   g_pfnVectors
+20000400   g_ui16ADC0Result
+20000658   g_ui16ADC1Result
+200008d0   g_ui32SysTickCount
+00002819   getCEState
+0000258d   groundAdjacentADCPins
+00000f45   initADC
+00001429   initDistanceSensingModules
+000024f1   initLED
+00001669   initMotor
+00001c31   initRfModule
+00001861   initSpeaker
+0000194d   initSpiForRF
+00001d47   main
+20000cf8   main_func_sp
+00001b01   memcpy
+000023c7   rfDelayLoop
+0000106d   sendDataToControlBoard
+00002277   sendTestData
+0000237f   setMotorDirection
+000023d9   setMotorSpeed
+000025a9   setRfCE
+0000276b   setRfCSN
+00000f11   signalUnhandleError
+00002511   startSamplingMicSignals
+000025c5   startSpeaker
+00000ad1   testAllMotorModes
+000021f9   testCarrierDetection
+00001a29   testRfTransmission
+000025e1   turnOffLED
+00002531   turnOnLED
+00002405   uDMAChannelAssign
+000020e5   uDMAChannelAttributeDisable
+000024a9   uDMAChannelControlSet
+0000262d   uDMAChannelEnable
+0000245d   uDMAChannelModeGet
+00001dbd   uDMAChannelTransferSet
+00002831   uDMAControlBaseSet
+0000277d   uDMAEnable
+0000103f   uDMAErrorHandler
+0000283d   uDMAErrorStatusClear
+00002849   uDMAErrorStatusGet
+
+
+GLOBAL SYMBOLS: SORTED BY Symbol Address 
+
+address    name
+--------   ----
+00000000   __TI_static_base__
+00000000   g_pfnVectors
+00000001   __TI_args_main
+0000026d   RF24_init
+00000313   RF24_enableFeatures
+0000034d   RF24_disableFeatures
+00000377   RF24_getLostPackets
+00000385   RF24_isAlive
+000003ab   RF24_setSpeedAndPower
+000003c9   RF24_setChannel
+000003df   RF24_setAddressWidth
+000003fd   RF24_getCurrentState
+00000400   __STACK_SIZE
+00000457   RF24_startPowerDown
+0000046b   RF24_startStandby
+000004ad   RF24_scan
+00000513   RF24_getIrqFlag
+00000547   RF24_clearIrqFlag
+00000585   RF24_TX_setAddress
+000005d1   RF24_TX_writePayloadAck
+00000625   RF24_TX_writePayloadNoAck
+00000679   RF24_TX_flush
+0000068f   RF24_TX_reuseLastPayload
+000006a5   RF24_TX_activate
+000006c7   RF24_TX_pulseTransmit
+000006db   RF24_RX_setAddress
+00000749   RF24_RX_getPayloadWidth
+0000076d   RF24_RX_getPayloadData
+000007bf   RF24_RX_flush
+000007d5   RF24_RX_activate
+000007f7   RF24_RX_isEmpty
+00000813   RF24_RX_sendAckWithPayload
+00000879   RF24_RX_carrierDetection
+00000893   RF24_PIPE_close
+000008ef   RF24_PIPE_closeAll
+0000090b   RF24_PIPE_open
+00000981   RF24_PIPE_isOpen
+000009c1   RF24_PIPE_setPacketSize
+00000a49   RF24_RETRANS_setDelay
+00000a83   RF24_RETRANS_setCount
+00000abd   RF24_RETRANS_getLastRetransmits
+00000ad1   testAllMotorModes
+00000f11   signalUnhandleError
+00000f45   initADC
+00000f8f   ADC0IntHandler
+00000fe7   ADC1IntHandler
+0000103f   uDMAErrorHandler
+00001059   SpeakerTimerIntHandler
+0000106d   sendDataToControlBoard
+000011a1   RF24_IntHandler
+000012f9   GPIOPadConfigSet
+00001429   initDistanceSensingModules
+00001551   SysCtlClockGet
+00001669   initMotor
+00001771   SysCtlClockSet
+00001861   initSpeaker
+0000194d   initSpiForRF
+00001a29   testRfTransmission
+00001b01   __aeabi_memcpy
+00001b01   __aeabi_memcpy4
+00001b01   __aeabi_memcpy8
+00001b01   memcpy
+00001b9d   __TI_auto_init
+00001c31   initRfModule
+00001cbd   ADCSequenceStepConfigure
+00001d3d   SysTickHandler
+00001d47   main
+00001d97   GPIOAIntHandler
+00001dbd   uDMAChannelTransferSet
+00001e3d   IntEnable
+00001efd   TimerConfigure
+00001f59   TimerControlTrigger
+00001fb1   GPIOIntTypeSet
+00002007   GPIOPinToggle
+00002027   ADCDitherEnable
+0000203d   ADCDitherDisable
+00002055   GPIOPinConfigure
+0000209d   _c_int00
+000020e5   uDMAChannelAttributeDisable
+0000212d   copy_in
+00002171   C$$EXIT
+00002175   abort
+0000217d   exit
+000021b5   SSIConfigSetExpClk
+000021f9   testCarrierDetection
+00002239   ADCSequenceConfigure
+00002277   sendTestData
+000022b5   RF24_readRegister
+000022e9   RF24_writeRegister
+0000231d   SysCtlPeripheralEnable
+00002351   ADCIntStatus
+0000237f   setMotorDirection
+000023ad   SPI_sendAndGetData
+000023c7   rfDelayLoop
+000023d9   setMotorSpeed
+00002405   uDMAChannelAssign
+00002431   GPIODirModeSet
+0000245d   uDMAChannelModeGet
+00002485   IntPrioritySet
+000024a9   uDMAChannelControlSet
+000024cd   PWMGenConfigure
+000024f1   initLED
+00002511   startSamplingMicSignals
+00002531   turnOnLED
+00002551   PWMPulseWidthSet
+00002571   clearRfCE
+0000258d   groundAdjacentADCPins
+000025a9   setRfCE
+000025c5   startSpeaker
+000025e1   turnOffLED
+000025fd   GPIOPinTypeGPIOOutput
+00002615   _args_main
+0000262d   uDMAChannelEnable
+00002645   RF24_setConfigureRegister
+0000265d   SysCtlPWMClockSet
+00002671   TimerDisable
+00002685   _register_unlock
+0000268b   _register_lock
+00002693   _nop
+00002699   ADCHardwareOversampleConfigure
+000026ab   GPIOPinTypeADC
+000026bd   GPIOPinTypeGPIOInput
+000026cf   GPIOPinTypePWM
+000026e1   GPIOPinTypeSSI
+000026f3   PWMOutputState
+00002705   SSIDataGetNonBlocking
+00002717   TimerLoadSet
+00002729   __TI_zero_init
+0000273b   ADCSequenceDMAEnable
+0000274b   PWMGenPeriodSet
+0000275b   clearRfCSN
+0000276b   setRfCSN
+0000277d   uDMAEnable
+0000278d   ADCSequenceEnable
+0000279b   GPIOIntStatus
+000027a9   TimerEnable
+000027b7   __TI_decompress_none
+000027c5   CPUcpsie
+000027d1   GPIOIntEnable
+000027dd   PWMGenDisable
+000027e9   PWMGenEnable
+000027f5   SSIDataGet
+00002801   disableMOTOR
+0000280d   enableMOTOR
+00002819   getCEState
+00002825   ResetISR
+00002831   uDMAControlBaseSet
+0000283d   uDMAErrorStatusClear
+00002849   uDMAErrorStatusGet
+00002855   ADCIntClear
+0000285f   IntMasterEnable
+00002869   SSIDataPut
+00002873   SSIDisable
+0000287d   SSIEnable
+00002887   TimerIntEnable
+0000288f   GPIOIntClear
+00002895   GPIOPinRead
+0000289b   GPIOPinWrite
+000028a1   SysCtlDelay
+000028a7   __TI_decompress_rle24
+000028ad   TimerIntClear
+00002ad8   __TI_Handler_Table_Base
+00002ae4   __TI_Handler_Table_Limit
+00002af0   __TI_CINIT_Base
+00002b00   __TI_CINIT_Limit
+20000400   g_ui16ADC0Result
+20000658   g_ui16ADC1Result
+200008b0   RF24_RX_buffer
+200008d0   g_ui32SysTickCount
+200008e0   __stack
+20000ae0   __STACK_TOP
+20000ce0   __STACK_END
+20000ce8   _lock
+20000cec   _unlock
+20000cf0   __TI_cleanup_ptr
+20000cf4   __TI_dtors_ptr
+20000cf8   main_func_sp
+ffffffff   __binit__
+ffffffff   __c_args__
+ffffffff   binit
+UNDEFED    SHT$$INIT_ARRAY$$Base
+UNDEFED    SHT$$INIT_ARRAY$$Limit
+
+[182 symbols]
