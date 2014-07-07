@@ -4,5 +4,5 @@
 
 USER_OBJS :=
 
-LIBS := -l"libc.a" -l"D:/Program\ Files/TI/TivaWare_C_Series-2.1.0.12573/driverlib/ccs/Debug/driverlib.lib"
+LIBS := -l"libc.a" -l"D:/Software\ Projects/ArmTI/driverlib/Debug/driverlib.lib"
 

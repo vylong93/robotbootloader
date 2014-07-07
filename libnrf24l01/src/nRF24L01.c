@@ -147,8 +147,10 @@ void RF24_startStandby ()
 {
     unsigned char config = RF24_readRegister(RF24_REG_CONFIG);
 
+    // Go to standby mode
     clearRfCE();
 
+    // Change from power down mode to standby mode?
     if ((config & RF24_PWR_UP) == RF24_PWR_DOWN)
     {
         if (config & RF24_PRIM_RX)
@@ -156,6 +158,7 @@ void RF24_startStandby ()
         else
           RF24_setConfigureRegister(crcConfig | RF24_PWR_UP | RF24_PRIM_TX);
 
+        // Maximum wait time to go from power down mode to standby mode
         rfDelayLoop(DELAY_CYCLES_5MS);
     }
 }
@@ -286,6 +289,28 @@ void RF24_TX_pulseTransmit()
 {
   setRfCE();
   rfDelayLoop(DELAY_CYCLES_15US);
+  clearRfCE();
+}
+
+// TODO: Test this function
+// Use after calling
+// ONLY Config the nrf24l01+ board to send a non-modulated carrier signal
+// which acts as a jamming signal
+void RF24_TX_sendJammingSignal()
+{
+  status = RF24_readRegister(RF24_REG_RF_SETUP);
+  status |= 0b1001;
+  RF24_writeRegister(RF24_REG_RF_SETUP, status);
+  setRfCE();
+}
+
+// TODO: Test this function
+// Config the nrf24l01+ board to stop sending the jamming signal
+void RF24_TX_stopJammingSignal()
+{
+  status = RF24_readRegister(RF24_REG_RF_SETUP);
+  status &= 0b0110;
+  RF24_writeRegister(RF24_REG_RF_SETUP, status);
   clearRfCE();
 }
 

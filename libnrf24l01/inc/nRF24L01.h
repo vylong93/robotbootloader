@@ -361,6 +361,10 @@ void RF24_TX_flush ();
 //Enable retransmitting contents of TX FIFO endlessly until RF24_flush_tx() or the FIFO contents are replaced.
 void RF24_TX_reuseLastPayload ();
 
+void RF24_TX_sendJammingSignal();
+
+void RF24_TX_stopJammingSignal();
+
 // Configure RX address of "rf_addr_width" size into the specified pipe
 void RF24_RX_setAddress (unsigned char pipe, unsigned char *addr);
 

@@ -4,14 +4,14 @@
 
 SHELL = cmd.exe
 
-CG_TOOL_ROOT := D:/Program Files/TI/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3
+CG_TOOL_ROOT := c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3
 
 ORDERED_OBJS += \
 "./libnrf24l01/src/nRF24L01.o" \
 "./libnrf24l01/src/TM4C123_nRF24L01.o" \
-"./tm4c123gh6pm_startup_gcc.o" \
+"./tm4c123gh6pm_startup_ccs.o" \
 "./main.o" \
--Wl,-T"../bl_link.ld" \
+"../CustomTm4c123gh6pm.cmd" \
 $(GEN_CMDS__FLAG) \
 -Wl,--start-group \
 -lgcc \
@@ -136,13 +136,13 @@ all: bootLoaderRFV2.out
 bootLoaderRFV2.out: $(OBJS) $(CMD_SRCS) $(LD_SRCS) $(LDS_SRCS) $(GEN_CMDS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: GNU Linker'
-	"D:/Program Files/TI/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/arm-none-eabi-gcc.exe" -mthumb -mfloat-abi=softfp -mfpu=fpv4-sp-d16 -DPART_TM4C123GH6PM -Dgcc -ffunction-sections -fdata-sections -g -gstrict-dwarf -Wall -Wl,-Map,"bootLoaderRFV2.map" -L"D:/Program Files/TI/TivaWare_C_Series-2.1.0.12573/driverlib/gcc" -o"bootLoaderRFV2.out" $(ORDERED_OBJS)
+	"c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/arm-none-eabi-gcc.exe" -mthumb -mfloat-abi=softfp -mfpu=fpv4-sp-d16 -DPART_TM4C123GH6PM -Dgcc -ffunction-sections -fdata-sections -g -gstrict-dwarf -Wall -Wl,-Map,"bootLoaderRFV2.map" -L"D:/Portable/Programs/TivaDriver/driverlib/gcc" -o"bootLoaderRFV2.out" $(ORDERED_OBJS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
 bootLoaderRFV2.hex: $(EXE_OUTPUTS)
 	@echo 'Invoking: GNU Objcopy Utility'
-	"D:/Program Files/TI/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/arm-none-eabi-objcopy.exe"  $(EXE_OUTPUTS__QUOTED) "bootLoaderRFV2.hex"
+	"c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/arm-none-eabi-objcopy.exe"  $(EXE_OUTPUTS__QUOTED) "bootLoaderRFV2.hex"
 	@echo 'Finished building: $@'
 	@echo ' '
 
@@ -150,8 +150,8 @@ bootLoaderRFV2.hex: $(EXE_OUTPUTS)
 clean:
 	-$(RM) $(EXE_OUTPUTS__QUOTED)$(BIN_OUTPUTS__QUOTED)
 	-$(RM) "main.d" "libnrf24l01\src\TM4C123_nRF24L01.d" "libnrf24l01\src\nRF24L01.d" 
-	-$(RM) "tm4c123gh6pm_startup_gcc.d" 
-	-$(RM) "main.o" "tm4c123gh6pm_startup_gcc.o" "libnrf24l01\src\TM4C123_nRF24L01.o" "libnrf24l01\src\nRF24L01.o" 
+	-$(RM) "tm4c123gh6pm_startup_ccs.d" 
+	-$(RM) "main.o" "tm4c123gh6pm_startup_ccs.o" "libnrf24l01\src\TM4C123_nRF24L01.o" "libnrf24l01\src\nRF24L01.o" 
 	-@echo 'Finished clean'
 	-@echo ' '
 

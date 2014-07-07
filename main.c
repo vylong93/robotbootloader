@@ -28,6 +28,7 @@
 #define WAIT_TIME 100
 
 #define BOOT_LOADER_START 0xAA
+#define BOOT_LOADER_ACK   0xAC
 
 #define LED_PORT_BASE           GPIO_PORTF_BASE
 #define LED_PORT_CLOCK          SYSCTL_PERIPH_GPIOF
@@ -45,7 +46,8 @@ typedef enum
   BL_RF24_TIMEOUT,
   BL_DATA_OVERFLOWED,
   BL_WRONG_CHECKSUM,
-  BL_UNKNOWN_COMMAND
+  BL_UNKNOWN_COMMAND,
+  BL_MISSING_PACKET
 } BootLoaderEnum;
 
 inline void initLED()
@@ -161,8 +163,10 @@ void Updater(void)
         uint32_t wait1ms = SysCtlClockGet() / 1000;
 
 	uint8_t RF24_RX_buffer[32];
+	uint8_t RF24_TX_buffer = BOOT_LOADER_ACK;
 	uint8_t rfDataLength;
 
+	uint32_t currentAddress;
 	uint32_t transferAddress;
 	uint32_t transferSize;
 	uint32_t flashSize;
@@ -180,8 +184,8 @@ void Updater(void)
         if(isReceivedData)
         {
             transferSize = convertByteToUINT32(&RF24_RX_buffer[0]);
-
-            flashSize = transferSize + APP_START_ADDRESS;
+            currentAddress = APP_START_ADDRESS;
+            flashSize = transferSize + currentAddress;
 
             // Clear the flash access interrupt.
             BL_FLASH_CL_ERR_FN_HOOK();
@@ -205,102 +209,136 @@ void Updater(void)
 
         GPIOPinWrite(LED_PORT_BASE, LED_ALL, LED_BLUE);
 
-        // Programming Flash loop. Do not enter if errors occured
-        // First packet: Data length(1 byte) + check sum(2 bytes) + start address(3 bytes)
-        // Second packet: Data
-        while(status == BL_PROGRAM_SUCCESS)
+        if(status != BL_PROGRAM_SUCCESS)
         {
-           isReceivedData = readDataRF(&rfDataLength, RF24_RX_buffer, WAIT_TIME*wait1ms);
-           if(isReceivedData == 0)
-           {
-               status = BL_RF24_TIMEOUT;
-               break;
-           }
-           byteCount = RF24_RX_buffer[0];
-           // Check if there are any more bytes to receive.
-           if(transferSize >= byteCount)
-           {
-               // Make sure data length is a multiple of 4
-               if ((byteCount % 4) != 0)
-               {
-                   status =  BL_INVALID_DATA_LENGTH;
-                   break;
-               }
-
-               // Get check sum
-               ui16checkSum = RF24_RX_buffer[1];
-               ui16checkSum <<= 8;
-               ui16checkSum |= RF24_RX_buffer[2];
-
-               // Calculate check sum
-               ui16checkSum += byteCount;
-               ui16checkSum += (RF24_RX_buffer[3] + RF24_RX_buffer[4] + RF24_RX_buffer[5]);
-               transferAddress = RF24_RX_buffer[3];
-               transferAddress <<= 8;
-               transferAddress |= RF24_RX_buffer[4];
-               transferAddress <<= 8;
-               transferAddress |= RF24_RX_buffer[5];
-
-               // Get data
-               isReceivedData = readDataRF(&rfDataLength, RF24_RX_buffer, WAIT_TIME*wait1ms);
-               if(isReceivedData == 0)
-               {
-                   status =  BL_RF24_TIMEOUT;
-                   break;
-               }
-
-               // Calculate check sum
-               for(ui32Temp = 0; ui32Temp < byteCount; ui32Temp++)
-               {
-                   ui16checkSum += RF24_RX_buffer[ui32Temp];
-               }
-
-               if(ui16checkSum != 0)
-               {
-                   status = BL_WRONG_CHECKSUM;
-                   break;
-               }
-
-               // Clear the flash access interrupt.
-               BL_FLASH_CL_ERR_FN_HOOK();
-
-               // Write this block of data to the flash
-               BL_FLASH_PROGRAM_FN_HOOK(transferAddress,
-                                        (uint8_t *) &RF24_RX_buffer[0],
-                                        rfDataLength);
-
-               if(BL_FLASH_ERROR_FN_HOOK())
-               {
-                   status = BL_FLASH_ACCESS_FAILED;
-                   break;
-               }
-               transferSize -= byteCount;
-
-               if(transferSize == 0)
-               {
-                   GPIOPinWrite(LED_PORT_BASE, LED_ALL, LED_GREEN);
-                   status = BL_PROGRAM_SUCCESS;
-
-                   // Reset to jump to app code
-                   HWREG(NVIC_APINT) = (NVIC_APINT_VECTKEY |
-                                        NVIC_APINT_SYSRESETREQ);
-
-                   // An infinite loop is placed here to prevent error
-                   // if the device is not reset
-                   while(1)
-                     ;
-               }
-           }
-           else
-           {
-               status = BL_DATA_OVERFLOWED;
-           }
+            // Errors occur during the erasing process wait here
+            // until user reset the robot manually
+            while(1)
+            ;
         }
 
-        // Errors occur during the progamming process wait here
-        // until user reset the robot manually
+        // The programming Flash loop.
+        // First packet: Data length(1 byte) + check sum(2 bytes) + start address(3 bytes)
+        // Second packet: Data
         while(1)
-        ;
+        {
+           while(1)
+           {
+             //--------------------------First Packet Handle-------------------------------
+             isReceivedData = readDataRF(&rfDataLength, RF24_RX_buffer, WAIT_TIME*wait1ms);
+             if(isReceivedData == 0)
+             {
+                 status = BL_RF24_TIMEOUT;
+                 break;
+             }
+
+             byteCount = RF24_RX_buffer[0];
+             // Check if there are any more bytes to receive.
+             if(transferSize >= byteCount)
+             {
+                 // Get check sum
+                 ui16checkSum = RF24_RX_buffer[1];
+                 ui16checkSum <<= 8;
+                 ui16checkSum |= RF24_RX_buffer[2];
+
+                 // Calculate check sum
+                 ui16checkSum += byteCount;
+                 ui16checkSum += (RF24_RX_buffer[3] + RF24_RX_buffer[4] + RF24_RX_buffer[5]);
+
+                 // Retrieve new program block address
+                 transferAddress = RF24_RX_buffer[3];
+                 transferAddress <<= 8;
+                 transferAddress |= RF24_RX_buffer[4];
+                 transferAddress <<= 8;
+                 transferAddress |= RF24_RX_buffer[5];
+
+                 //--------------------------Second Packet Handle-------------------------------
+                 isReceivedData = readDataRF(&rfDataLength, RF24_RX_buffer, WAIT_TIME*wait1ms);
+                 if(isReceivedData == 0)
+                 {
+                     status =  BL_RF24_TIMEOUT;
+                     break;
+                 }
+
+                 // Make sure data length is a multiple of 4
+                 if ((byteCount % 4) != 0)
+                 {
+                     status =  BL_INVALID_DATA_LENGTH;
+                     break;
+                 }
+
+                 // Is this a new packet?
+                 if(currentAddress == transferAddress)
+                 {
+                     // Calculate check sum
+                     for(ui32Temp = 0; ui32Temp < byteCount; ui32Temp++)
+                         ui16checkSum += RF24_RX_buffer[ui32Temp];
+
+                     if(ui16checkSum != 0)
+                     {
+                         status = BL_WRONG_CHECKSUM;
+                         break;
+                     }
+
+                     // Clear the flash access interrupt.
+                     BL_FLASH_CL_ERR_FN_HOOK();
+                     // Write this block of data to the flash
+                     BL_FLASH_PROGRAM_FN_HOOK(transferAddress,
+                                              (uint8_t *) &RF24_RX_buffer[0],
+                                              rfDataLength);
+                     if(BL_FLASH_ERROR_FN_HOOK())
+                     {
+                         status = BL_FLASH_ACCESS_FAILED;
+                         break;
+                     }
+                     currentAddress += byteCount;
+                     transferSize -= byteCount;
+                 }
+
+                   //IMPORTANT: One robot must be built with the command below
+//                 // Wait longer than 130us to wait control board go into RX mode
+//                 // or if there is any jamming singal.
+//                 // TODO: The real wait time should be calibrated throught testing
+//                 rfDelayLoop(DELAY_CYCLES_130US*3);
+//                 // Send an ack signal back to the control board if its ID is the chosen one
+//                 RF24_TX_activate();
+//                 RF24_TX_writePayloadNoAck(1, &RF24_TX_buffer);
+//                 RF24_TX_pulseTransmit();
+//                 RF24_RX_activate();
+
+                 // Did we finish updating application code?
+                 if(transferSize == 0)
+                 {
+                     GPIOPinWrite(LED_PORT_BASE, LED_ALL, LED_GREEN);
+                     status = BL_PROGRAM_SUCCESS;
+
+                     // Reset to jump to app code
+                     HWREG(NVIC_APINT) = (NVIC_APINT_VECTKEY |
+                                          NVIC_APINT_SYSRESETREQ);
+
+                     // An infinite loop is placed here to prevent error
+                     // if the device is not reset
+                     while(1)
+                       ;
+                 }
+
+             }
+             else
+             {
+                 status = BL_DATA_OVERFLOWED;
+                 break;
+             }
+           }
+
+           // Some errors occur -> send a jamming signal
+           RF24_TX_activate();
+           RF24_TX_sendJammingSignal();
+           rfDelayLoop(DELAY_CYCLES_1MS5);
+           RF24_TX_stopJammingSignal();
+
+           // Go back to the RX mode to receive a new data frame
+           RF24_RX_activate();
+        }
 }
 
 //*****************************************************************************
@@ -339,12 +377,9 @@ void CheckForceUpdate(void)
         // the link register (lr) points to the wrong return
         // address after reading RF data. The reason is still
         // unknown.
-       // HWREG(NVIC_APINT) = (NVIC_APINT_VECTKEY |
-       //                      NVIC_APINT_SYSRESETREQ);
-	   while(1)
-	   ;
+        HWREG(NVIC_APINT) = (NVIC_APINT_VECTKEY |
+                             NVIC_APINT_SYSRESETREQ);
 
-        return;
     }
 
     Updater();

@@ -1,1 +1,1 @@
-"./libnrf24l01/src/nRF24L01.o" "./libnrf24l01/src/TM4C123_nRF24L01.o" "./tm4c123gh6pm_startup_gcc.o" "./main.o" -Wl,-T"../bl_link.ld" -Wl,--start-group -lgcc -lnosys -ldriver -Wl,--end-group 
+"./libnrf24l01/src/nRF24L01.o" "./libnrf24l01/src/TM4C123_nRF24L01.o" "./tm4c123gh6pm_startup_ccs.o" "./main.o" "../CustomTm4c123gh6pm.cmd" -Wl,--start-group -lgcc -lnosys -ldriver -Wl,--end-group 

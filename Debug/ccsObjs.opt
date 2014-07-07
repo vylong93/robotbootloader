@@ -1,1 +1,1 @@
-"./libnrf24l01/src/nRF24L01.obj" "./libnrf24l01/src/TM4C123_nRF24L01.obj" "./tm4c123gh6pm_startup_ccs.obj" "./main.obj" "../Sram_tm4c123gh6pm.cmd" -l"libc.a" -l"D:\Program Files\TI\TivaWare_C_Series-2.1.0.12573\driverlib\ccs\Debug\driverlib.lib" 
+"./libnrf24l01/src/nRF24L01.obj" "./libnrf24l01/src/TM4C123_nRF24L01.obj" "./tm4c123gh6pm_startup_ccs.obj" "./main.obj" "../Sram_tm4c123gh6pm.cmd" -l"libc.a" -l"D:\Software Projects\ArmTI\driverlib\Debug\driverlib.lib" 
