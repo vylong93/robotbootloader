@@ -27,7 +27,7 @@
 
 #define WAIT_TIME 100
 
-#define START_BOOT_LOADER 0xAA
+#define BOOT_LOADER_START 0xAA
 
 #define LED_PORT_BASE           GPIO_PORTF_BASE
 #define LED_PORT_CLOCK          SYSCTL_PERIPH_GPIOF
@@ -179,19 +179,15 @@ void Updater(void)
 
         if(isReceivedData)
         {
-            //transferAddress = convertByteToUINT32(&RF24_RX_buffer[0]);
-        	transferAddress = APP_START_ADDRESS;
+            transferSize = convertByteToUINT32(&RF24_RX_buffer[0]);
 
-            transferSize = convertByteToUINT32(&RF24_RX_buffer[4]);
-
-            flashSize = transferAddress + transferSize;
-
+            flashSize = transferSize + APP_START_ADDRESS;
 
             // Clear the flash access interrupt.
             BL_FLASH_CL_ERR_FN_HOOK();
 
             // Erase the program space needed by the application.
-            for(ui32Temp = transferAddress;
+            for(ui32Temp = APP_START_ADDRESS;
                 ui32Temp < flashSize; ui32Temp += FLASH_PAGE_SIZE)
             {
                 BL_FLASH_ERASE_FN_HOOK(ui32Temp);
@@ -279,7 +275,6 @@ void Updater(void)
                    break;
                }
                transferSize -= byteCount;
-               transferAddress += byteCount;
 
                if(transferSize == 0)
                {
@@ -302,10 +297,10 @@ void Updater(void)
            }
         }
 
-        // Errors occur during the progamming process
-        // wait here until user reset the device manually
+        // Errors occur during the progamming process wait here
+        // until user reset the robot manually
         while(1)
-          ;
+        ;
 }
 
 //*****************************************************************************
@@ -335,7 +330,7 @@ void CheckForceUpdate(void)
 
     // If the received data is not a valid START_BOOT_LOADER
     // command then jump to application code
-    if( (RF24_RX_buffer[0] != START_BOOT_LOADER) ||
+    if( (RF24_RX_buffer[0] != BOOT_LOADER_START) ||
         (rfDataLength != 1))
     {
         //!!!!!!!!!!!!!!Importance!!!!!!!!!!!!!!!!!!!!!!!
@@ -344,10 +339,11 @@ void CheckForceUpdate(void)
         // the link register (lr) points to the wrong return
         // address after reading RF data. The reason is still
         // unknown.
-//        HWREG(NVIC_APINT) = (NVIC_APINT_VECTKEY |
-//                             NVIC_APINT_SYSRESETREQ);
+       // HWREG(NVIC_APINT) = (NVIC_APINT_VECTKEY |
+       //                      NVIC_APINT_SYSRESETREQ);
+	   while(1)
+	   ;
 
-    	while(1);
         return;
     }
 
