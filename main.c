@@ -28,7 +28,11 @@
 #define WAIT_TIME 100
 
 #define BOOT_LOADER_START 0xAA
-#define BOOT_LOADER_ACK   0xAC
+
+#define BOOT_LOADER_ACK1   0xAC
+#define BOOT_LOADER_ACK2   0x0C
+#define BOOT_LOADER_ACK3   0x48
+#define BOOT_LOADER_ACK_LENGTH   3
 
 #define LED_PORT_BASE           GPIO_PORTF_BASE
 #define LED_PORT_CLOCK          SYSCTL_PERIPH_GPIOF
@@ -37,12 +41,15 @@
 #define LED_BLUE                GPIO_PIN_2
 #define LED_GREEN               GPIO_PIN_3
 
+#define FIRST_PACKET_LENGTH 6
+
 typedef enum
 {
   BL_PROGRAM_SUCCESS,
   BL_INVALID_ADDRESS,
   BL_FLASH_ACCESS_FAILED,
   BL_INVALID_DATA_LENGTH,
+  BL_INVALID_PACKET_LENGTH,
   BL_RF24_TIMEOUT,
   BL_DATA_OVERFLOWED,
   BL_WRONG_CHECKSUM,
@@ -79,9 +86,13 @@ inline void initRfModule()
   // Open pipe#0 with Enhanced ShockBurst enabled for receiving Auto-ACKs
   RF24_PIPE_open(RF24_PIPE0, true);
 
-  uint8_t addr[3] =  {0xDE, 0xAD, 0xBE};
-  RF24_RX_setAddress(RF24_PIPE0, addr);
+  uint8_t addr[3] =  {0x0E, 0xAC, 0xC1};
   RF24_TX_setAddress(addr);
+
+  addr[0] = 0xDE;
+  addr[1] = 0xAD;
+  addr[2] = 0xBE;
+  RF24_RX_setAddress(RF24_PIPE0, addr);
 
   RF24_RX_activate();
 }
@@ -163,8 +174,9 @@ void Updater(void)
         uint32_t wait1ms = SysCtlClockGet() / 1000;
 
 	uint8_t RF24_RX_buffer[32];
-	uint8_t RF24_TX_buffer = BOOT_LOADER_ACK;
+	uint8_t RF24_TX_buffer[3] = {BOOT_LOADER_ACK1, BOOT_LOADER_ACK2, BOOT_LOADER_ACK3};
 	uint8_t rfDataLength;
+	uint8_t firstPacketLength;
 
 	uint32_t currentAddress;
 	uint32_t transferAddress;
@@ -218,6 +230,7 @@ void Updater(void)
         }
 
         // The programming Flash loop.
+        // One data frame has two packets
         // First packet: Data length(1 byte) + check sum(2 bytes) + start address(3 bytes)
         // Second packet: Data
         while(1)
@@ -225,7 +238,7 @@ void Updater(void)
            while(1)
            {
              //--------------------------First Packet Handle-------------------------------
-             isReceivedData = readDataRF(&rfDataLength, RF24_RX_buffer, WAIT_TIME*wait1ms);
+             isReceivedData = readDataRF(&firstPacketLength, RF24_RX_buffer, WAIT_TIME*wait1ms);
              if(isReceivedData == 0)
              {
                  status = BL_RF24_TIMEOUT;
@@ -260,6 +273,25 @@ void Updater(void)
                      break;
                  }
 
+                 // Calculate check sum
+                 for(ui32Temp = 0; ui32Temp < byteCount; ui32Temp++)
+                     ui16checkSum += RF24_RX_buffer[ui32Temp];
+
+                 if(ui16checkSum != 0)
+                 {
+                     status = BL_WRONG_CHECKSUM;
+                     break;
+                 }
+
+                 // Check other conditions after calculating checksum
+                 // to avoid sending the jamming signal too soon when
+                 // an error occurs
+                 if(firstPacketLength != FIRST_PACKET_LENGTH)
+                 {
+                     status =  BL_INVALID_PACKET_LENGTH;
+                     break;
+                 }
+
                  // Make sure data length is a multiple of 4
                  if ((byteCount % 4) != 0)
                  {
@@ -267,19 +299,15 @@ void Updater(void)
                      break;
                  }
 
+                 if(currentAddress < transferAddress)
+                 {
+                     status =  BL_MISSING_PACKET;
+                     break;
+                 }
+
                  // Is this a new packet?
                  if(currentAddress == transferAddress)
                  {
-                     // Calculate check sum
-                     for(ui32Temp = 0; ui32Temp < byteCount; ui32Temp++)
-                         ui16checkSum += RF24_RX_buffer[ui32Temp];
-
-                     if(ui16checkSum != 0)
-                     {
-                         status = BL_WRONG_CHECKSUM;
-                         break;
-                     }
-
                      // Clear the flash access interrupt.
                      BL_FLASH_CL_ERR_FN_HOOK();
                      // Write this block of data to the flash
@@ -295,14 +323,14 @@ void Updater(void)
                      transferSize -= byteCount;
                  }
 
-                   //IMPORTANT: One robot must be built with the command below
+                   //IMPORTANT!: ONLY ONE robot must be built with the command below uncommented
 //                 // Wait longer than 130us to wait control board go into RX mode
 //                 // or if there is any jamming singal.
 //                 // TODO: The real wait time should be calibrated throught testing
 //                 rfDelayLoop(DELAY_CYCLES_130US*3);
-//                 // Send an ack signal back to the control board if its ID is the chosen one
+//                 // Send an ack signal back to the control board if it is the "chosen one"
 //                 RF24_TX_activate();
-//                 RF24_TX_writePayloadNoAck(1, &RF24_TX_buffer);
+//                 RF24_TX_writePayloadNoAck(BOOT_LOADER_ACK_LENGTH, &RF24_TX_buffer);
 //                 RF24_TX_pulseTransmit();
 //                 RF24_RX_activate();
 
