@@ -41,13 +41,14 @@
 #define LED_BLUE                GPIO_PIN_2
 #define LED_GREEN               GPIO_PIN_3
 
-#define FIRST_PACKET_LENGTH 6
+#define FIRST_PACKET_LENGTH 7
 
 typedef enum
 {
   BL_PROGRAM_SUCCESS,
   BL_INVALID_ADDRESS,
   BL_FLASH_ACCESS_FAILED,
+  BL_TRANSFER_SIZE_TOO_LARGE,
   BL_INVALID_DATA_LENGTH,
   BL_INVALID_PACKET_LENGTH,
   BL_RF24_TIMEOUT,
@@ -199,6 +200,11 @@ void Updater(void)
             currentAddress = APP_START_ADDRESS;
             flashSize = transferSize + currentAddress;
 
+            if(flashSize > MAX_FLASH_SIZE)
+            {
+                status = BL_TRANSFER_SIZE_TOO_LARGE;
+            }
+
             // Clear the flash access interrupt.
             BL_FLASH_CL_ERR_FN_HOOK();
 
@@ -256,14 +262,11 @@ void Updater(void)
 
                  // Calculate check sum
                  ui16checkSum += byteCount;
-                 ui16checkSum += (RF24_RX_buffer[3] + RF24_RX_buffer[4] + RF24_RX_buffer[5]);
+                 ui16checkSum += (RF24_RX_buffer[3] + RF24_RX_buffer[4]);
+                 ui16checkSum += (RF24_RX_buffer[5] + RF24_RX_buffer[6]);
 
                  // Retrieve new program block address
-                 transferAddress = RF24_RX_buffer[3];
-                 transferAddress <<= 8;
-                 transferAddress |= RF24_RX_buffer[4];
-                 transferAddress <<= 8;
-                 transferAddress |= RF24_RX_buffer[5];
+                 transferAddress = convertByteToUINT32(&RF24_RX_buffer[3]);
 
                  //--------------------------Second Packet Handle-------------------------------
                  isReceivedData = readDataRF(&rfDataLength, RF24_RX_buffer, WAIT_TIME*wait1ms);
