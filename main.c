@@ -87,13 +87,13 @@ inline void initRfModule()
   // Open pipe#0 with Enhanced ShockBurst enabled for receiving Auto-ACKs
   RF24_PIPE_open(RF24_PIPE0, true);
 
-  uint8_t addr[3] =  {0x0E, 0xAC, 0xC1};
+  uint8_t addr[3] =  {0x1E, 0xAC, 0xC1}; // rx control
   RF24_TX_setAddress(addr);
 
   addr[0] = 0xDE;
   addr[1] = 0xAD;
   addr[2] = 0xBE;
-  RF24_RX_setAddress(RF24_PIPE0, addr);
+  RF24_RX_setAddress(RF24_PIPE0, addr); // tx control
 
   RF24_RX_activate();
 }
@@ -119,12 +119,12 @@ bool readDataRF(uint8_t * length, uint8_t * readData, uint32_t waitTime)
         setRfCSN();
         status &= RF24_IRQ_MASK;
         status &= RF24_IRQ_RX;
-        if(status)
+        if(status != 0)
           break;
     }
     count++;
     if(count >= waitTime)
-      return 0;
+      return false;
   }
 
   // get pay load width
@@ -155,7 +155,7 @@ bool readDataRF(uint8_t * length, uint8_t * readData, uint32_t waitTime)
     setRfCSN();
   }
 
-  return 1;
+  return true;
 }
 
 uint32_t convertByteToUINT32(uint8_t data[])
@@ -172,9 +172,9 @@ uint32_t convertByteToUINT32(uint8_t data[])
 
 void Updater(void)
 {
-        uint32_t wait1ms = SysCtlClockGet() / 1000;
+    uint32_t wait1ms = SysCtlClockGet() / 1000;
 
-	uint8_t RF24_RX_buffer[32];
+	uint8_t RF24_RX_buffer[32] = { 0 };
 	uint8_t RF24_TX_buffer[3] = {BOOT_LOADER_ACK1, BOOT_LOADER_ACK2, BOOT_LOADER_ACK3};
 	uint8_t rfDataLength;
 	uint8_t firstPacketLength;
@@ -229,9 +229,10 @@ void Updater(void)
 
         if(status != BL_PROGRAM_SUCCESS)
         {
+			GPIOPinWrite(LED_PORT_BASE, LED_ALL, LED_ALL);
             // Errors occur during the erasing process wait here
             // until user reset the robot manually
-            while(1)
+			while(1)
             ;
         }
 
@@ -325,18 +326,20 @@ void Updater(void)
                      currentAddress += byteCount;
                      transferSize -= byteCount;
                  }
-
-                   //IMPORTANT!: ONLY ONE robot must be built with the command below uncommented
-//                 // Wait longer than 130us to wait control board go into RX mode
-//                 // or if there is any jamming singal.
-//                 // TODO: The real wait time should be calibrated throught testing
-//                 rfDelayLoop(DELAY_CYCLES_130US*3);
-//                 // Send an ack signal back to the control board if it is the "chosen one"
-//                 RF24_TX_activate();
-//                 RF24_TX_writePayloadNoAck(BOOT_LOADER_ACK_LENGTH, &RF24_TX_buffer);
-//                 RF24_TX_pulseTransmit();
-//                 RF24_RX_activate();
-
+                   
+				 //IMPORTANT!: ONLY ONE robot must be built with the command below uncommented
+                 // Wait longer than 130us to wait control board go into RX mode
+                 // or if there is any jamming singal.
+                 // TODO: The real wait time should be calibrated throught testing
+                 GPIOPinWrite(LED_PORT_BASE, LED_RED, LED_RED);
+				 RF24_TX_activate();
+                 rfDelayLoop(DELAY_CYCLES_130US*3);
+                 // Send an ack signal back to the control board if it is the "chosen one"
+                 RF24_TX_writePayloadNoAck(BOOT_LOADER_ACK_LENGTH, RF24_TX_buffer);
+                 RF24_TX_pulseTransmit();
+                 RF24_RX_activate();
+				 GPIOPinWrite(LED_PORT_BASE, LED_RED, 0);
+				 
                  // Did we finish updating application code?
                  if(transferSize == 0)
                  {
@@ -361,7 +364,9 @@ void Updater(void)
              }
            }
 
-           // Some errors occur -> send a jamming signal
+		   GPIOPinWrite(LED_PORT_BASE, LED_ALL, LED_GREEN);
+		   while(1);
+		   // Some errors occur -> send a jamming signal
            RF24_TX_activate();
            RF24_TX_sendJammingSignal();
            rfDelayLoop(DELAY_CYCLES_1MS5);

@@ -254,7 +254,7 @@ void RF24_TX_writePayloadNoAck(unsigned char len, unsigned char *data)
     if ( !(features & RF24_FEATURE_EN_NO_ACK_COMMAND) )
             return;
     clearRfCSN();
-    status = SPI_sendAndGetData(RF24_COMMAND_W_TX_PAYLOAD_NOACK);
+    SPI_sendAndGetData(RF24_COMMAND_W_TX_PAYLOAD_NOACK);
     for (i = 0; i < len; i++)
     {
         SPI_sendAndGetData(data[i]);

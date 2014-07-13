@@ -4,7 +4,7 @@
 
 SHELL = cmd.exe
 
-CG_TOOL_ROOT := c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3
+CG_TOOL_ROOT := D:/Program Files/TI/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3
 
 ORDERED_OBJS += \
 "./libnrf24l01/src/nRF24L01.o" \
@@ -136,13 +136,13 @@ all: bootLoaderRFV2.out
 bootLoaderRFV2.out: $(OBJS) $(CMD_SRCS) $(LD_SRCS) $(LDS_SRCS) $(GEN_CMDS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: GNU Linker'
-	"c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/arm-none-eabi-gcc.exe" -mthumb -mfloat-abi=softfp -mfpu=fpv4-sp-d16 -DPART_TM4C123GH6PM -Dgcc -ffunction-sections -fdata-sections -g -gstrict-dwarf -Wall -Wl,-Map,"bootLoaderRFV2.map" -L"D:/Portable/Programs/TivaDriver/driverlib/gcc" -o"bootLoaderRFV2.out" $(ORDERED_OBJS)
+	"D:/Program Files/TI/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/arm-none-eabi-gcc.exe" -mthumb -mfloat-abi=softfp -mfpu=fpv4-sp-d16 -DPART_TM4C123GH6PM -Dgcc -ffunction-sections -fdata-sections -g -gstrict-dwarf -Wall -Wl,-Map,"bootLoaderRFV2.map" -L"D:/Portable/Programs/TivaDriver/driverlib/gcc" -o"bootLoaderRFV2.out" $(ORDERED_OBJS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
 bootLoaderRFV2.hex: $(EXE_OUTPUTS)
 	@echo 'Invoking: GNU Objcopy Utility'
-	"c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/arm-none-eabi-objcopy.exe"  $(EXE_OUTPUTS__QUOTED) "bootLoaderRFV2.hex"
+	"D:/Program Files/TI/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/arm-none-eabi-objcopy.exe"  $(EXE_OUTPUTS__QUOTED) "bootLoaderRFV2.hex"
 	@echo 'Finished building: $@'
 	@echo ' '
 

@@ -4,7 +4,7 @@
 
 SHELL = cmd.exe
 
-CG_TOOL_ROOT := c:/ti/ccsv6/tools/compiler/arm_5.1.5
+CG_TOOL_ROOT := D:/Program Files/TI/ccsv6/tools/compiler/arm_5.1.5
 
 ORDERED_OBJS += \
 $(GEN_CMDS__FLAG) \
@@ -14,7 +14,7 @@ $(GEN_CMDS__FLAG) \
 "./main.obj" \
 "../Sram_tm4c123gh6pm.cmd" \
 -l"libc.a" \
--l"D:\Software Projects\ArmTI\driverlib\Debug\driverlib.lib" \
+-l"D:\Program Files\TI\TivaWare_C_Series-2.1.0.12573\driverlib\ccs\Debug\driverlib.lib" \
 
 -include ../makefile.init
 
@@ -133,13 +133,13 @@ all: bootLoaderRFV2.out secondary-outputs
 bootLoaderRFV2.out: $(OBJS) $(CMD_SRCS) $(LD_SRCS) $(LDS_SRCS) $(GEN_CMDS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: ARM Linker'
-	"c:/ti/ccsv6/tools/compiler/arm_5.1.5/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 --abi=eabi -me -Ooff -g --gcc --define=css="css" --define=PART_TM4C123GH6PM --display_error_number --diag_warning=225 --diag_wrap=off -z -m"bootLoaderRFV2.map" --heap_size=0 --stack_size=256 -i"c:/ti/ccsv6/tools/compiler/arm_5.1.5/lib" -i"c:/ti/ccsv6/tools/compiler/arm_5.1.5/include" --reread_libs --warn_sections --display_error_number --diag_wrap=off --xml_link_info="bootLoaderRFV2_linkInfo.xml" --rom_model -o "bootLoaderRFV2.out" $(ORDERED_OBJS)
+	"D:/Program Files/TI/ccsv6/tools/compiler/arm_5.1.5/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 --abi=eabi -me -Ooff -g --gcc --define=css="css" --define=PART_TM4C123GH6PM --display_error_number --diag_warning=225 --diag_wrap=off -z -m"bootLoaderRFV2.map" --heap_size=0 --stack_size=256 -i"D:/Program Files/TI/ccsv6/tools/compiler/arm_5.1.5/lib" -i"D:/Program Files/TI/ccsv6/tools/compiler/arm_5.1.5/include" --reread_libs --warn_sections --display_error_number --diag_wrap=off --xml_link_info="bootLoaderRFV2_linkInfo.xml" --rom_model -o "bootLoaderRFV2.out" $(ORDERED_OBJS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
 bootLoaderRFV2.hex: $(EXE_OUTPUTS)
 	@echo 'Invoking: ARM Hex Utility'
-	"c:/ti/ccsv6/tools/compiler/arm_5.1.5/bin/armhex" --ti_txt -o "bootLoaderRFV2.hex" $(EXE_OUTPUTS__QUOTED)
+	"D:/Program Files/TI/ccsv6/tools/compiler/arm_5.1.5/bin/armhex" --ti_txt -o "bootLoaderRFV2.hex" $(EXE_OUTPUTS__QUOTED)
 	@echo 'Finished building: $@'
 	@echo ' '
 
