@@ -58,14 +58,14 @@ typedef enum
   BL_MISSING_PACKET
 } BootLoaderEnum;
 
-inline void initLED()
+void initLED()
 {
     SysCtlPeripheralEnable(LED_PORT_CLOCK);
     GPIOPinTypeGPIOOutput(LED_PORT_BASE, LED_RED | LED_GREEN | LED_BLUE);
     GPIOPinWrite(LED_PORT_BASE, LED_ALL, 0);
 }
 
-inline void initRfModule()
+void initRfModule()
 {
   RF24_InitTypeDef initRf24;
   initRf24.AddressWidth = RF24_ADRESS_WIDTH_3;
@@ -365,7 +365,21 @@ void Updater(void)
            }
 
 		   GPIOPinWrite(LED_PORT_BASE, LED_ALL, LED_GREEN);
+		   
+		   uint8_t addr[3];
+		   addr[2] = 0xC1;
+		   addr[1] = 0xAC;
+		   addr[0] = 0x02;
+		   RF24_TX_setAddress(addr);
+		   
+		   RF24_TX_activate();
+		   rfDelayLoop(DELAY_CYCLES_130US*3); // wait for TX mode spin up
+		   
+		   RF24_TX_writePayloadNoAck(1, (unsigned char*)(&status));
+           RF24_TX_pulseTransmit();
+		
 		   while(1);
+		   
 		   // Some errors occur -> send a jamming signal
            RF24_TX_activate();
            RF24_TX_sendJammingSignal();
