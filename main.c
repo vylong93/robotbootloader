@@ -50,12 +50,13 @@ typedef enum
   BL_FLASH_ACCESS_FAILED,
   BL_TRANSFER_SIZE_TOO_LARGE,
   BL_INVALID_DATA_LENGTH,
-  BL_INVALID_PACKET_LENGTH,
+  BL_INVALID_FIRST_PACKET_LENGTH,
+  BL_INVALID_SECOND_PACKET_LENGTH,
   BL_RF24_TIMEOUT,
   BL_DATA_OVERFLOWED,
   BL_WRONG_CHECKSUM,
   BL_UNKNOWN_COMMAND,
-  BL_MISSING_PACKET
+  BL_MISSING_DATA_FRAME
 } BootLoaderEnum;
 
 void initLED()
@@ -292,7 +293,7 @@ void Updater(void)
                  // an error occurs
                  if(firstPacketLength != FIRST_PACKET_LENGTH)
                  {
-                     status =  BL_INVALID_PACKET_LENGTH;
+                     status =  BL_INVALID_FIRST_PACKET_LENGTH;
                      break;
                  }
 
@@ -302,10 +303,16 @@ void Updater(void)
                      status =  BL_INVALID_DATA_LENGTH;
                      break;
                  }
-
+				 
+				 if(rfDataLength != byteCount)
+                 {
+                     status =  BL_INVALID_SECOND_PACKET_LENGTH;
+                     break;
+                 }
+				 
                  if(currentAddress < transferAddress)
                  {
-                     status =  BL_MISSING_PACKET;
+                     status =  BL_MISSING_DATA_FRAME;
                      break;
                  }
 
