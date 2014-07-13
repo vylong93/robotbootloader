@@ -147,10 +147,8 @@ void RF24_startStandby ()
 {
     unsigned char config = RF24_readRegister(RF24_REG_CONFIG);
 
-    // Go to standby mode
     clearRfCE();
 
-    // Change from power down mode to standby mode?
     if ((config & RF24_PWR_UP) == RF24_PWR_DOWN)
     {
         if (config & RF24_PRIM_RX)
@@ -158,7 +156,6 @@ void RF24_startStandby ()
         else
           RF24_setConfigureRegister(crcConfig | RF24_PWR_UP | RF24_PRIM_TX);
 
-        // Maximum wait time to go from power down mode to standby mode
         rfDelayLoop(DELAY_CYCLES_5MS);
     }
 }
@@ -206,7 +203,7 @@ void RF24_clearIrqFlag (unsigned char irqflag)
     setRfCSN();
 }
 
-inline unsigned char RF24_readRegister(unsigned char addr)
+unsigned char RF24_readRegister(unsigned char addr)
 {
     unsigned char i;
     clearRfCSN();
@@ -229,7 +226,7 @@ void RF24_TX_setAddress(unsigned char *addr)
     signed char i;
     clearRfCSN();
     status = SPI_sendAndGetData(RF24_REG_TX_ADDR | RF24_COMMAND_W_REGISTER);
-    for (i = addressWidth-1; i >= 0; i--)
+    for (i = 0; i < addressWidth; i++)
     {
         SPI_sendAndGetData(addr[i]);
     }
@@ -254,7 +251,7 @@ void RF24_TX_writePayloadNoAck(unsigned char len, unsigned char *data)
     if ( !(features & RF24_FEATURE_EN_NO_ACK_COMMAND) )
             return;
     clearRfCSN();
-    SPI_sendAndGetData(RF24_COMMAND_W_TX_PAYLOAD_NOACK);
+    status = SPI_sendAndGetData(RF24_COMMAND_W_TX_PAYLOAD_NOACK);
     for (i = 0; i < len; i++)
     {
         SPI_sendAndGetData(data[i]);
@@ -292,28 +289,6 @@ void RF24_TX_pulseTransmit()
   clearRfCE();
 }
 
-// TODO: Test this function
-// Use after calling
-// ONLY Config the nrf24l01+ board to send a non-modulated carrier signal
-// which acts as a jamming signal
-void RF24_TX_sendJammingSignal()
-{
-  status = RF24_readRegister(RF24_REG_RF_SETUP);
-  status |= 0b1001;
-  RF24_writeRegister(RF24_REG_RF_SETUP, status);
-  setRfCE();
-}
-
-// TODO: Test this function
-// Config the nrf24l01+ board to stop sending the jamming signal
-void RF24_TX_stopJammingSignal()
-{
-  status = RF24_readRegister(RF24_REG_RF_SETUP);
-  status &= 0b0110;
-  RF24_writeRegister(RF24_REG_RF_SETUP, status);
-  clearRfCE();
-}
-
 void RF24_RX_setAddress(unsigned char pipe, unsigned char *addr)
 {
     signed char i;
@@ -329,7 +304,7 @@ void RF24_RX_setAddress(unsigned char pipe, unsigned char *addr)
     }
     else
     {
-        for (i=addressWidth-1; i>=0; i--)
+        for (i = 0; i < addressWidth; i++)
         {
             SPI_sendAndGetData(addr[i]);
         }

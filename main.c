@@ -87,7 +87,7 @@ inline void initRfModule()
   // Open pipe#0 with Enhanced ShockBurst enabled for receiving Auto-ACKs
   RF24_PIPE_open(RF24_PIPE0, true);
 
-  uint8_t addr[3] =  {0x1E, 0xAC, 0xC1}; // rx control
+  uint8_t addr[3] =  {0x0E, 0xAC, 0xC1}; // rx control
   RF24_TX_setAddress(addr);
 
   addr[0] = 0xDE;
