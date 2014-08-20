@@ -25,103 +25,103 @@ static char CEState;
 inline void initSpiForRF(bool interruptEnable)
 {
   // Enable the ports used by the RF board
-  SysCtlPeripheralEnable(RF24_SPI_PORT_CLOCK);
+  ROM_SysCtlPeripheralEnable(RF24_SPI_PORT_CLOCK);
   rfDelayLoop(1);
   if(RF24_SPI_PORT_CLOCK != RF24_INT_PORT_CLOCK)
   {
-    SysCtlPeripheralEnable(RF24_INT_PORT_CLOCK);
+    ROM_SysCtlPeripheralEnable(RF24_INT_PORT_CLOCK);
     rfDelayLoop(1);
   }
 
   // Enable the SSI module used by the RF board
-  SysCtlPeripheralEnable(RF24_SPI_CLOCK);
+  ROM_SysCtlPeripheralEnable(RF24_SPI_CLOCK);
   rfDelayLoop(3);
 
   // Disable the SSI to config
-  SSIDisable(RF24_SPI);
+  ROM_SSIDisable(RF24_SPI);
   rfDelayLoop(2);
 
   // Connect mux pins to the targeted SSI module
-  GPIOPinConfigure(RF24_SCK_CONFIGURE);
-  GPIOPinConfigure(RF24_MISO_CONFIGURE);
-  GPIOPinConfigure(RF24_MOSI_CONFIGURE);
+  ROM_GPIOPinConfigure(RF24_SCK_CONFIGURE);
+  ROM_GPIOPinConfigure(RF24_MISO_CONFIGURE);
+  ROM_GPIOPinConfigure(RF24_MOSI_CONFIGURE);
 
   // Cofigure SSI pins
-  GPIOPinTypeSSI(RF24_SPI_PORT, RF24_SCK | RF24_MISO | RF24_MOSI);
+  ROM_GPIOPinTypeSSI(RF24_SPI_PORT, RF24_SCK | RF24_MISO | RF24_MOSI);
 
   // Configure the SSI port for SPI master mode.
-  SSIConfigSetExpClk(RF24_SPI, SysCtlClockGet(), SSI_FRF_MOTO_MODE_0, SSI_MODE_MASTER, RF24_SPI_BAUDRATE, 8);
+  ROM_SSIConfigSetExpClk(RF24_SPI, SysCtlClockGet(), SSI_FRF_MOTO_MODE_0, SSI_MODE_MASTER, RF24_SPI_BAUDRATE, 8);
 
   // Configure the interrupt pin as input
-  GPIOPinTypeGPIOInput(RF24_INT_PORT, RF24_INT_Pin);
+  ROM_GPIOPinTypeGPIOInput(RF24_INT_PORT, RF24_INT_Pin);
 
   //We use soft SPI
-  GPIOPinTypeGPIOOutput(RF24_SPI_PORT, RF24_CSN);
+  ROM_GPIOPinTypeGPIOOutput(RF24_SPI_PORT, RF24_CSN);
 
   // Configure the CE pin
-  GPIOPinTypeGPIOOutput(RF24_INT_PORT, RF24_CE);
+  ROM_GPIOPinTypeGPIOOutput(RF24_INT_PORT, RF24_CE);
 
   if(interruptEnable)
   {
-          // Enable interrupt source of the interrupt pin used by RF board
-          GPIOIntEnable(RF24_INT_PORT, RF24_INT_Channel);
+      // Enable interrupt source of the interrupt pin used by RF board
+      GPIOIntEnable(RF24_INT_PORT, RF24_INT_Channel);
 
-          // Set the type of interrupt
-          GPIOIntTypeSet(RF24_INT_PORT, RF24_INT_Pin, GPIO_FALLING_EDGE );
+      // Set the type of interrupt
+      ROM_GPIOIntTypeSet(RF24_INT_PORT, RF24_INT_Pin, GPIO_FALLING_EDGE );
 
-          // Enable interrupts to the processor.
-          IntMasterEnable();
+      // Enable interrupts to the processor.
+      ROM_IntMasterEnable();
 
-          // Enable the interrupts.
-          IntEnable(RF24_INT);
+      // Enable the interrupts.
+      ROM_IntEnable(RF24_INT);
 
-          // Set the interrupt priorities.
-          IntPrioritySet(RF24_INT, 0x00);
+      // Set the interrupt priorities.
+      ROM_IntPrioritySet(RF24_INT, 0x00);
   }
 
   // Enable the SSI module.
-  SSIEnable(RF24_SPI);
+  ROM_SSIEnable(RF24_SPI);
 
   uint32_t dataRx;
   // Read any residual data from the SSI port.
-  while(SSIDataGetNonBlocking(RF24_SPI, &dataRx))
+  while(ROM_SSIDataGetNonBlocking(RF24_SPI, &dataRx))
   {
   }
 }
 
 inline void  setRfCSN()
 {
-  GPIOPinWrite(RF24_SPI_PORT, RF24_CSN, RF24_CSN);
+  ROM_GPIOPinWrite(RF24_SPI_PORT, RF24_CSN, RF24_CSN);
 }
 
 inline void  clearRfCSN()
 {
-  GPIOPinWrite(RF24_SPI_PORT, RF24_CSN, 0);
+  ROM_GPIOPinWrite(RF24_SPI_PORT, RF24_CSN, 0);
 }
 
 inline void  setRfCE()
 {
-  GPIOPinWrite(RF24_INT_PORT, RF24_CE, RF24_CE);
+  ROM_GPIOPinWrite(RF24_INT_PORT, RF24_CE, RF24_CE);
   CEState = 1;
 }
 
 inline void  clearRfCE()
 {
-  GPIOPinWrite(RF24_INT_PORT, RF24_CE, 0);
+  ROM_GPIOPinWrite(RF24_INT_PORT, RF24_CE, 0);
   CEState = 0;
 }
 
 char SPI_sendAndGetData(uint32_t inData)
 {
-    SSIDataPut(RF24_SPI, inData);
+    ROM_SSIDataPut(RF24_SPI, inData);
     uint32_t outData;
-    SSIDataGet(RF24_SPI, &outData);
+    ROM_SSIDataGet(RF24_SPI, &outData);
     return (char)outData;
 }
 
 void rfDelayLoop (uint32_t delay)
 {
-  SysCtlDelay(delay);
+  ROM_SysCtlDelay(delay);
 }
 
 inline char getCEState()
