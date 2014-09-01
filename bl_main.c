@@ -78,6 +78,14 @@ typedef enum
 	BL_JAMMING,
 } BootLoaderEnum;
 
+#define RF24_CONTOLBOARD_ADDR_BYTE2		0xC1
+#define RF24_CONTOLBOARD_ADDR_BYTE1		0xAC
+#define RF24_CONTOLBOARD_ADDR_BYTE0		0x02
+
+#define RF24_BSL_NACK_ADDR_BYTE2	RF24_CONTOLBOARD_ADDR_BYTE2
+#define RF24_BSL_NACK_ADDR_BYTE1	RF24_CONTOLBOARD_ADDR_BYTE1
+#define RF24_BSL_NACK_ADDR_BYTE0	RF24_CONTOLBOARD_ADDR_BYTE0
+
 #define MAX_FLASH_SIZE        		0x00040000
 
 #define BSL_WAIT_TIME 			100
@@ -182,12 +190,13 @@ void MyHwInitFunc(void)
   RF24_PIPE_open(RF24_PIPE0, true);
 
   uint8_t addr[3] =
-  { 0x0E, 0xAC, 0xC1 };  // rx control
-  RF24_TX_setAddress(addr);
+  { 0x0E, 0xAC, 0xC1 };  	// rx control - NOT USED
+  RF24_TX_setAddress(addr);	// WARNING! this address will be reconfigure
 
-  addr[0] = 0xDE;
-  addr[1] = 0xAD;
-  addr[2] = 0xBE;
+  addr[0] = RF24_GLOBAL_BOARDCAST_BYTE0;
+  addr[1] = RF24_GLOBAL_BOARDCAST_BYTE1;
+  addr[2] = RF24_GLOBAL_BOARDCAST_BYTE2;
+
   RF24_RX_setAddress(RF24_PIPE0, addr);  // tx control
 
   RF24_RX_activate();
@@ -254,10 +263,11 @@ int main(void)
 void ConfigureDevice(void)
 {
   // addition MCU configuration if need after EnterBootLoader
-  uint8_t addr[3];
-  addr[2] = 0xC1;
-  addr[1] = 0xAC;
-  addr[0] = 0x02;
+  uint8_t addr[3] = {
+		  RF24_BSL_NACK_ADDR_BYTE0,
+		  RF24_BSL_NACK_ADDR_BYTE1,
+		  RF24_BSL_NACK_ADDR_BYTE2
+  };
   RF24_TX_setAddress(addr);
 
   ROM_GPIOPinWrite(LED_PORT_BASE, LED_ALL, 0);
