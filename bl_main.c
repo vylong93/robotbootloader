@@ -88,7 +88,7 @@ typedef enum
 
 #define MAX_FLASH_SIZE        		0x00040000
 
-#define BSL_WAIT_TIME 			100
+#define BSL_WAIT_TIME 			50
 #define BSL_START_COMMAND		0xAA
 
 #define BSL_START_PACKET_LENGTH		6       // <0xAA><transferSize><checksum>
@@ -356,7 +356,7 @@ void Updater(void)
   {
     ROM_GPIOPinWrite(LED_PORT_BASE, LED_ALL, LED_BLUE);
 
-    ui8RxLength = waitForRfPacket(g_1msCycles, pui8RfBuffer); // wait for 30ms
+    ui8RxLength = waitForRfPacket(g_1msCycles, pui8RfBuffer);
 
     if (ui8RxLength != 0)
     {
