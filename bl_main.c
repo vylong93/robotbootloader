@@ -356,7 +356,7 @@ void Updater(void)
   {
     ROM_GPIOPinWrite(LED_PORT_BASE, LED_ALL, LED_BLUE);
 
-    ui8RxLength = waitForRfPacket(g_1msCycles, pui8RfBuffer);
+    ui8RxLength = waitForRfPacket(g_1msCycles * 3, pui8RfBuffer);
 
     if (ui8RxLength != 0)
     {
