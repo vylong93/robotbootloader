@@ -78,7 +78,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="bl_link.ld|bl_startup_ccs.s|bl_link_ccs.cmd|tm4c123gh6pm_startup_ccs.c|tm4c123gh6pm.cmd" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="libnrf24l01/src/TM4C123_nRF24L01.c|libnrf24l01/src/nRF24L01.c|bl_link.ld|bl_startup_ccs.s|bl_link_ccs.cmd|tm4c123gh6pm_startup_ccs.c|tm4c123gh6pm.cmd" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>

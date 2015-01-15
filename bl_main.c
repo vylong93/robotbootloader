@@ -31,6 +31,9 @@
 #include "inc/hw_sysctl.h"
 #include "inc/hw_types.h"
 #include "driverlib/rom.h"
+#include "driverlib/gpio.h"
+#include "driverlib/sysctl.h"
+
 #include "bl_config.h"
 #include "boot_loader/bl_flash.h"
 #include "boot_loader/bl_hooks.h"
@@ -38,10 +41,16 @@
 #include "boot_loader/bl_crc32.h"
 #endif
 
-#include "libnrf24l01/inc/TM4C123_nRF24L01.h"
-#include "libnrf24l01/inc/nRF24L01.h"
+//#include "libnrf24l01/inc/TM4C123_nRF24L01.h"
+//#include "libnrf24l01/inc/nRF24L01.h"
+
+#include "libcc2500/inc/TM4C123_CC2500.h"
+#include "libcc2500/inc/CC2500.h"
 
 extern void StartApplication(void);
+
+void TI_CC_IRQ_handler(void);
+void TI_CC_IRQ_handler(void){}
 
 //*****************************************************************************
 //
@@ -78,33 +87,30 @@ typedef enum
 	BL_JAMMING,
 } BootLoaderEnum;
 
-#define RF24_CONTOLBOARD_ADDR_BYTE2		0xC1
-#define RF24_CONTOLBOARD_ADDR_BYTE1		0xAC
-#define RF24_CONTOLBOARD_ADDR_BYTE0		0x02
-
-#define RF24_BSL_NACK_ADDR_BYTE2	RF24_CONTOLBOARD_ADDR_BYTE2
-#define RF24_BSL_NACK_ADDR_BYTE1	RF24_CONTOLBOARD_ADDR_BYTE1
-#define RF24_BSL_NACK_ADDR_BYTE0	RF24_CONTOLBOARD_ADDR_BYTE0
-
 #define MAX_FLASH_SIZE        		0x00040000
 
-#define BSL_WAIT_TIME 			50
+#define BSL_WAIT_TIME 			50			// default: 50
 #define BSL_START_COMMAND		0xAA
 
+#define BSL_PACKET_LENGTH_IDX		0
 #define BSL_START_PACKET_LENGTH		6       // <0xAA><transferSize><checksum>
-// BSL Start Packet Offset
-#define BOOTLOADER_COMMAND_OFFSET       0       // must be 0xAA
-#define TRANSFER_SIZE_OFFSET            1       // (BOOTLOADER_COMMAND_OFFSET + 1)
-#define CHECKSUM_OFFSET                 5       // (TRANSFER_SIZE_OFFSET + 4)
+// BSL Start Packet index
+#define BOOTLOADER_COMMAND_IDX       1       // must be 0xAA (BSL_PACKET_LENGTH_IDX + 1)
+#define TRANSFER_SIZE_IDX            2       // (BOOTLOADER_COMMAND_IDX + 1)
+#define TRANSFER_SIZE_IDX_UPPER      3       // (TRANSFER_SIZE_IDX + 1)
+#define TRANSFER_SIZE_IDX_HIGH       4       // (TRANSFER_SIZE_IDX_UPPER + 1)
+#define TRANSFER_SIZE_IDX_LOW        5       // (TRANSFER_SIZE_IDX_HIGH + 1)
+#define CHECKSUM_IDX                 6       // (TRANSFER_SIZE_IDX + 4)
 
-#define BSL_PACKET_DATA_LENGTH          16
-#define BSL_PACKET_FULL_LENGTH          23      // <program address><byte count><data[0]...data[n]><checksum>
-// BSL Program Packet Offset
-#define BSL_PACKET_ADDRESS_OFFSET       0
-#define BSL_PACKET_BYTECOUNT_OFFSET     4       // (BSL_PACKET_ADDRESS_OFFSET + 4)
-#define BSL_PACKET_DATA_OFFSET          5       // (BSL_PACKET_BYTECOUNT_OFFSET + 1)
-#define BSL_PACKET_CHECKSUM_OFFSET      21      // (BSL_PACKET_DATA_OFFSET + BSL_PACKET_DATA_LENGTH)
-#define BSL_PACKET_CHECKSUM 1
+#define BSL_PACKET_DATA_LENGTH          32
+#define BSL_PACKET_FULL_LENGTH          40      // <program address><byte count><data[0]...data[n]><checksum>
+
+// BSL Program Packet index
+#define BSL_PACKET_ADDRESS_IDX       1		 // (BSL_PACKET_LENGTH_IDX + 1)
+#define BSL_PACKET_BYTECOUNT_IDX     5       // (BSL_PACKET_ADDRESS_IDX + 4)
+#define BSL_PACKET_DATA_IDX          6       // (BSL_PACKET_BYTECOUNT_IDX + 1)
+
+#define BSL_PACKET_CHECKSUM
 
 #define LED_PORT_BASE           GPIO_PORTF_BASE
 #define LED_PORT_CLOCK          SYSCTL_PERIPH_GPIOF
@@ -139,19 +145,15 @@ uint8_t waitForRfPacket(uint32_t ui32TimeOut, uint8_t *pui8RfBuffer)
 
   while (ui32BootTime < ui32TimeOut)
   {
-    if (ROM_GPIOPinRead(RF24_INT_PORT, RF24_INT_Pin) == 0)
+    if (GPIOIntStatus(CC2500_INT_PORT, false) & CC2500_INT_Pin)  // TI_CC_IsInterruptPinAsserted()
     {
-      if (RF24_getIrqFlag(RF24_IRQ_RX))
-      {
-        ui8RxLength = RF24_RX_getPayloadWidth();
-        RF24_RX_getPayloadData(ui8RxLength, pui8RfBuffer);
-        RF24_clearIrqFlag(RF24_IRQ_RX);
-        return ui8RxLength;
-      }
-      else
-      {
-        RF24_clearIrqFlag(RF24_IRQ_MASK);
-      }
+      GPIOIntClear(CC2500_INT_PORT, CC2500_INT_Pin); // TI_CC_ClearIntFlag();
+
+	  if (RfReceivePacket(pui8RfBuffer) == RX_STATUS_SUCCESS) {   // Fetch packet from CCxxxx
+		  ui8RxLength = pui8RfBuffer[BSL_PACKET_LENGTH_IDX];
+		  return ui8RxLength;
+	  }
+	  TI_CC_Strobe(TI_CCxxx0_SFRX);          // Flush the RX FIFO
     }
     ui32BootTime++;
   }
@@ -168,39 +170,7 @@ void MyHwInitFunc(void)
 
   g_1msCycles = ROM_SysCtlClockGet() / 1000;
 
-  //----------------------- initRfModule() BEGIN -----------------------
-  RF24_InitTypeDef initRf24;
-  initRf24.AddressWidth = RF24_ADRESS_WIDTH_3;
-  initRf24.Channel = RF24_CHANNEL_0;
-  initRf24.CrcBytes = RF24_CRC_2BYTES;
-  initRf24.CrcState = RF24_CRC_EN;
-  initRf24.RetransmitCount = RF24_RETRANS_COUNT15;
-  initRf24.RetransmitDelay = RF24_RETRANS_DELAY_4000u;
-  initRf24.Speed = RF24_SPEED_1MBPS;
-  initRf24.Power = RF24_POWER_0DBM;
-  initRf24.Features = RF24_FEATURE_EN_DYNAMIC_PAYLOAD | RF24_FEATURE_EN_NO_ACK_COMMAND;
-  initRf24.InterruptEnable = false;
-  initRf24.LNAGainEnable = false;
-  RF24_init(&initRf24);
-
-  // Set payload pipe#0 dynamic
-  RF24_PIPE_setPacketSize(RF24_PIPE0, RF24_PACKET_SIZE_DYNAMIC);
-
-  // Open pipe#0 with Enhanced ShockBurst enabled for receiving Auto-ACKs
-  RF24_PIPE_open(RF24_PIPE0, true);
-
-  uint8_t addr[3] =
-  { 0x0E, 0xAC, 0xC1 };  	// rx control - NOT USED
-  RF24_TX_setAddress(addr);	// WARNING! this address will be reconfigure
-
-  addr[0] = RF24_GLOBAL_BOARDCAST_BYTE0;
-  addr[1] = RF24_GLOBAL_BOARDCAST_BYTE1;
-  addr[2] = RF24_GLOBAL_BOARDCAST_BYTE2;
-
-  RF24_RX_setAddress(RF24_PIPE0, addr);  // tx control
-
-  RF24_RX_activate();
-  //------------------------ initRfModule() END ------------------------
+  initRfModule(false);
 
   //----------------------- initLED() BEGIN -----------------------
   ROM_SysCtlPeripheralEnable(LED_PORT_CLOCK);
@@ -226,13 +196,15 @@ int main(void)
   if (ui8RxLength == BSL_START_PACKET_LENGTH)
   {
     // checksum received packet - Optimized
-    ui8CheckSum = pui8RfBuffer[CHECKSUM_OFFSET];
-    ui8CheckSum += pui8RfBuffer[0] + pui8RfBuffer[1] + pui8RfBuffer[2] + pui8RfBuffer[3] + pui8RfBuffer[4];
+	ui8CheckSum = pui8RfBuffer[CHECKSUM_IDX];
+	ui8CheckSum += pui8RfBuffer[BOOTLOADER_COMMAND_IDX]
+				 + pui8RfBuffer[TRANSFER_SIZE_IDX] + pui8RfBuffer[TRANSFER_SIZE_IDX_UPPER]
+				 + pui8RfBuffer[TRANSFER_SIZE_IDX_HIGH] + pui8RfBuffer[TRANSFER_SIZE_IDX_LOW];
 
     // check for 0xAA command and get NumberOfPacket, TO2 delay
-    if (pui8RfBuffer[BOOTLOADER_COMMAND_OFFSET] == BSL_START_COMMAND && ui8CheckSum == 0x00)
+	if (pui8RfBuffer[BOOTLOADER_COMMAND_IDX] == BSL_START_COMMAND && ui8CheckSum == 0x00)
     {
-      g_ui32TransferSize = convertByteToUINT32(pui8RfBuffer + TRANSFER_SIZE_OFFSET);
+      g_ui32TransferSize = convertByteToUINT32(&pui8RfBuffer[TRANSFER_SIZE_IDX]);
 
       return 1; /* EnterBootLoader */
     }
@@ -252,26 +224,17 @@ int main(void)
     while (1);
   }
 
-  ROM_SSIDisable(RF24_SPI);
-  ROM_SysCtlPeripheralDisable(RF24_SPI_PORT_CLOCK);
-  ROM_SysCtlPeripheralDisable(RF24_INT_PORT_CLOCK);
-  ROM_SysCtlPeripheralDisable(RF24_SPI_CLOCK);
+  ROM_SSIDisable(CC2500_SPI);
+  ROM_SysCtlPeripheralDisable(CC2500_SPI_PORT_CLOCK);
+  ROM_SysCtlPeripheralDisable(CC2500_INT_PORT_CLOCK);
+  ROM_SysCtlPeripheralDisable(CC2500_SPI_CLOCK);
   ROM_SysCtlPeripheralDisable(LED_PORT_CLOCK);
   return 0; /* CallApplication */
 }
 
 void ConfigureDevice(void)
 {
-  // addition MCU configuration if need after EnterBootLoader
-  uint8_t addr[3] = {
-		  RF24_BSL_NACK_ADDR_BYTE0,
-		  RF24_BSL_NACK_ADDR_BYTE1,
-		  RF24_BSL_NACK_ADDR_BYTE2
-  };
-  RF24_TX_setAddress(addr);
-
   ROM_GPIOPinWrite(LED_PORT_BASE, LED_ALL, 0);
-  RF24_RX_activate();
 }
 
 inline void ExitBootloader(void)
@@ -292,26 +255,23 @@ inline void ExitBootloader(void)
 
 void NACK(void)
 {
+  uint8_t txBuffer[2] = { 1, 0x00 }; // NACK Packet
+
   ROM_GPIOPinWrite(LED_PORT_BASE, LED_ALL, LED_GREEN);
-
-  RF24_TX_activate();
-
-  ROM_GPIOPinWrite(LED_PORT_BASE, LED_ALL, 0);
 
   // ROM_SysCtlDelay(833333); // 250000/3 ~5ms
   ROM_SysCtlDelay((g_1msCycles << 1) - 20000);
 
-  clearRfCSN();
-  SPI_sendAndGetData(RF24_COMMAND_W_TX_PAYLOAD_NOACK);
-  SPI_sendAndGetData(0x00);
-  setRfCSN();
-  RF24_TX_pulseTransmit();
+  TI_CC_Strobe(TI_CCxxx0_SIDLE);
+  RfWriteBurstReg(TI_CCxxx0_TXFIFO, txBuffer, 2); // Write TX data
+  TI_CC_Strobe(TI_CCxxx0_STX);
 
-  while (ROM_GPIOPinRead(RF24_INT_PORT, RF24_INT_Pin) != 0)
-                          ;
-  RF24_clearIrqFlag(RF24_IRQ_TX);
-  
-  RF24_RX_activate();
+  while (!ROM_GPIOPinRead(CC2500_INT_PORT, CC2500_INT_Pin));
+  while (ROM_GPIOPinRead(CC2500_INT_PORT, CC2500_INT_Pin));
+
+  GPIOIntClear(CC2500_INT_PORT, CC2500_INT_Pin);
+
+  ROM_GPIOPinWrite(LED_PORT_BASE, LED_ALL, 0);
 }
 
 void Updater(void)
@@ -358,19 +318,19 @@ void Updater(void)
 
     ui8RxLength = waitForRfPacket(g_1msCycles * 3, pui8RfBuffer);
 
-    if (ui8RxLength != 0)
+    if (ui8RxLength > 0 && ui8RxLength < BSL_PACKET_FULL_LENGTH)
     {
-      ui32ReceivedAddress = convertByteToUINT32(pui8RfBuffer + BSL_PACKET_ADDRESS_OFFSET);
-      ui32ByteCount = pui8RfBuffer[BSL_PACKET_BYTECOUNT_OFFSET];
+      ui32ReceivedAddress = convertByteToUINT32(&pui8RfBuffer[BSL_PACKET_ADDRESS_IDX]);
+      ui32ByteCount = pui8RfBuffer[BSL_PACKET_BYTECOUNT_IDX];
       // Is this a new packet?
       if (ui32ReceivedAddress == ui32ExpectedAddress)
       {
 
 #ifdef BSL_PACKET_CHECKSUM
         int i;
-        ui16Checksum = pui8RfBuffer[ui8RxLength - 2] << 8;
-        ui16Checksum |= pui8RfBuffer[ui8RxLength - 1];
-        for (i = 0; i < (ui8RxLength - 2); i++)
+        ui16Checksum = pui8RfBuffer[ui8RxLength - 1] << 8;
+        ui16Checksum |= pui8RfBuffer[ui8RxLength];
+        for (i = 1; i < (ui8RxLength - 1); i++)
             ui16Checksum += pui8RfBuffer[i];
         if (ui16Checksum != 0)
         {
@@ -392,7 +352,7 @@ void Updater(void)
         BL_FLASH_CL_ERR_FN_HOOK();
 
         // Write this block of data to the flash
-        BL_FLASH_PROGRAM_FN_HOOK(ui32ReceivedAddress, (pui8RfBuffer + BSL_PACKET_DATA_OFFSET), ui32ByteCount);
+        BL_FLASH_PROGRAM_FN_HOOK(ui32ReceivedAddress, &pui8RfBuffer[BSL_PACKET_DATA_IDX], ui32ByteCount);
 
         if (BL_FLASH_ERROR_FN_HOOK())
         {
@@ -413,28 +373,6 @@ void Updater(void)
       }
       else
       {
-       // RF24_TX_activate();
-
-       // ROM_GPIOPinWrite(LED_PORT_BASE, LED_ALL, 0);
-
-       // ROM_SysCtlDelay(g_1msCycles << 1);
-
-       // //RF24_TX_writePayloadNoAck(1, (unsigned char*) (&jamming));
-       // clearRfCSN();
-       // SPI_sendAndGetData(RF24_COMMAND_W_TX_PAYLOAD_NOACK);
-       // SPI_sendAndGetData(0xAC);
-       // SPI_sendAndGetData(0x0C);
-       // SPI_sendAndGetData(0x48);
-       // setRfCSN();
-
-       // RF24_TX_pulseTransmit();
-
-       // while (ROM_GPIOPinRead(RF24_INT_PORT, RF24_INT_Pin) != 0)
-                   // ;
-       // RF24_clearIrqFlag(RF24_IRQ_TX);
-
-       // RF24_RX_activate();
-
         // Did we finish updating application code?
         if (ui32ExpectedAddress == ui32ProgramEndAddress)
         {
