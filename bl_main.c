@@ -93,14 +93,18 @@ typedef enum
 #define BSL_START_COMMAND		0xAA
 
 #define BSL_PACKET_LENGTH_IDX		0
-#define BSL_START_PACKET_LENGTH		6       // <0xAA><transferSize><checksum>
+#define BSL_START_PACKET_LENGTH		10       // <0xAA><transferSize><waitTime><checksum>
 // BSL Start Packet index
 #define BOOTLOADER_COMMAND_IDX       1       // must be 0xAA (BSL_PACKET_LENGTH_IDX + 1)
 #define TRANSFER_SIZE_IDX            2       // (BOOTLOADER_COMMAND_IDX + 1)
 #define TRANSFER_SIZE_IDX_UPPER      3       // (TRANSFER_SIZE_IDX + 1)
 #define TRANSFER_SIZE_IDX_HIGH       4       // (TRANSFER_SIZE_IDX_UPPER + 1)
 #define TRANSFER_SIZE_IDX_LOW        5       // (TRANSFER_SIZE_IDX_HIGH + 1)
-#define CHECKSUM_IDX                 6       // (TRANSFER_SIZE_IDX + 4)
+#define WAIT_TIME_IDX            	 6       // (TRANSFER_SIZE_IDX_LOW + 1)
+#define WAIT_TIME_IDX_UPPER      	 7       // (WAIT_TIME_IDX + 1)
+#define WAIT_TIME_IDX_HIGH       	 8       // (WAIT_TIME_IDX_UPPER + 1)
+#define WAIT_TIME_IDX_LOW        	 9       // (WAIT_TIME_IDX_HIGH + 1)
+#define CHECKSUM_IDX                 10       // (WAIT_TIME_IDX_LOW + 4)
 
 #define BSL_PACKET_DATA_LENGTH          32
 #define BSL_PACKET_FULL_LENGTH          40      // <program address><byte count><data[0]...data[n]><checksum>
@@ -111,6 +115,8 @@ typedef enum
 #define BSL_PACKET_DATA_IDX          6       // (BSL_PACKET_BYTECOUNT_IDX + 1)
 
 #define BSL_PACKET_CHECKSUM
+
+#define BSL_NACK_PACKET_LENGTH		4
 
 #define LED_PORT_BASE           GPIO_PORTF_BASE
 #define LED_PORT_CLOCK          SYSCTL_PERIPH_GPIOF
@@ -199,13 +205,15 @@ int main(void)
 	ui8CheckSum = pui8RfBuffer[CHECKSUM_IDX];
 	ui8CheckSum += pui8RfBuffer[BOOTLOADER_COMMAND_IDX]
 				 + pui8RfBuffer[TRANSFER_SIZE_IDX] + pui8RfBuffer[TRANSFER_SIZE_IDX_UPPER]
-				 + pui8RfBuffer[TRANSFER_SIZE_IDX_HIGH] + pui8RfBuffer[TRANSFER_SIZE_IDX_LOW];
+				 + pui8RfBuffer[TRANSFER_SIZE_IDX_HIGH] + pui8RfBuffer[TRANSFER_SIZE_IDX_LOW]
+				 + pui8RfBuffer[WAIT_TIME_IDX] + pui8RfBuffer[WAIT_TIME_IDX_UPPER]
+				 + pui8RfBuffer[WAIT_TIME_IDX_HIGH] + pui8RfBuffer[WAIT_TIME_IDX_LOW];
 
     // check for 0xAA command and get NumberOfPacket, TO2 delay
 	if (pui8RfBuffer[BOOTLOADER_COMMAND_IDX] == BSL_START_COMMAND && ui8CheckSum == 0x00)
     {
       g_ui32TransferSize = convertByteToUINT32(&pui8RfBuffer[TRANSFER_SIZE_IDX]);
-
+      g_1msCycles = convertByteToUINT32(&pui8RfBuffer[WAIT_TIME_IDX]);
       return 1; /* EnterBootLoader */
     }
   }
@@ -255,7 +263,9 @@ inline void ExitBootloader(void)
 
 void NACK(void)
 {
-  uint8_t txBuffer[2] = { 1, 0x00 }; // NACK Packet
+  //uint8_t txBuffer[2] = { 1, 0x00 }; // NACK Packet
+
+  pui8RfBuffer[0] = BSL_NACK_PACKET_LENGTH - 1;
 
   ROM_GPIOPinWrite(LED_PORT_BASE, LED_ALL, LED_GREEN);
 
@@ -263,7 +273,7 @@ void NACK(void)
   ROM_SysCtlDelay((g_1msCycles << 1) - 20000);
 
   TI_CC_Strobe(TI_CCxxx0_SIDLE);
-  RfWriteBurstReg(TI_CCxxx0_TXFIFO, txBuffer, 2); // Write TX data
+  RfWriteBurstReg(TI_CCxxx0_TXFIFO, pui8RfBuffer, BSL_NACK_PACKET_LENGTH); // Write TX data
   TI_CC_Strobe(TI_CCxxx0_STX);
 
   while (!ROM_GPIOPinRead(CC2500_INT_PORT, CC2500_INT_Pin));
@@ -316,7 +326,7 @@ void Updater(void)
   {
     ROM_GPIOPinWrite(LED_PORT_BASE, LED_ALL, LED_BLUE);
 
-    ui8RxLength = waitForRfPacket(g_1msCycles * 3, pui8RfBuffer);
+    ui8RxLength = waitForRfPacket(g_1msCycles, pui8RfBuffer);
 
     if (ui8RxLength > 0 && ui8RxLength < BSL_PACKET_FULL_LENGTH)
     {
