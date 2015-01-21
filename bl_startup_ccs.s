@@ -253,8 +253,8 @@ ResetISR: .asmfunc
     ;;
     ;; See if an update should be performed.
     ;;
-    .ref    CheckForceUpdate
-    bl      CheckForceUpdate
+    .ref    main
+    bl      main
     cbz     r0, CallApplication
 	
     ;;

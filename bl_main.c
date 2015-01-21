@@ -33,6 +33,7 @@
 #include "driverlib/rom.h"
 #include "driverlib/gpio.h"
 #include "driverlib/sysctl.h"
+#include "driverlib/timer.h"
 
 #include "bl_config.h"
 #include "boot_loader/bl_flash.h"
@@ -89,8 +90,12 @@ typedef enum
 
 #define MAX_FLASH_SIZE        		0x00040000
 
-#define BSL_WAIT_TIME 			50			// default: 50
-#define BSL_START_COMMAND		0xAA
+// Non-Interrtup Timer
+#define DELAY_TIMER_CLOCK_NON_INT	SYSCTL_PERIPH_TIMER0
+#define DELAY_TIMER_BASE_NON_INT	TIMER0_BASE
+
+#define BSL_WAIT_TIME_US 			3000000	 // unit us
+#define BSL_START_COMMAND			0xAA
 
 #define BSL_PACKET_LENGTH_IDX		0
 #define BSL_START_PACKET_LENGTH		10       // <0xAA><transferSize><waitTime><checksum>
@@ -104,10 +109,10 @@ typedef enum
 #define WAIT_TIME_IDX_UPPER      	 7       // (WAIT_TIME_IDX + 1)
 #define WAIT_TIME_IDX_HIGH       	 8       // (WAIT_TIME_IDX_UPPER + 1)
 #define WAIT_TIME_IDX_LOW        	 9       // (WAIT_TIME_IDX_HIGH + 1)
-#define CHECKSUM_IDX                 10       // (WAIT_TIME_IDX_LOW + 4)
+#define CHECKSUM_IDX                 10      // (WAIT_TIME_IDX_LOW + 4)
 
-#define BSL_PACKET_DATA_LENGTH          32
-#define BSL_PACKET_FULL_LENGTH          40      // <program address><byte count><data[0]...data[n]><checksum>
+#define BSL_PACKET_DATA_LENGTH       32
+#define BSL_PACKET_FULL_LENGTH       40      // <program address><byte count><data[0]...data[n]><checksum>
 
 // BSL Program Packet index
 #define BSL_PACKET_ADDRESS_IDX       1		 // (BSL_PACKET_LENGTH_IDX + 1)
@@ -116,7 +121,8 @@ typedef enum
 
 #define BSL_PACKET_CHECKSUM
 
-#define BSL_NACK_PACKET_LENGTH		4
+#define BSL_PAKCET_HEADER_LENGTH	7	// Smallest valid packet: <4b Addr><1b cout><1b data><2b checksum>
+#define BSL_NACK_PACKET_LENGTH		4	// must be less than BSL_PAKCET_HEADER_LENGTH
 
 #define LED_PORT_BASE           GPIO_PORTF_BASE
 #define LED_PORT_CLOCK          SYSCTL_PERIPH_GPIOF
@@ -127,9 +133,10 @@ typedef enum
 
 uint32_t g_ui32TransferSize;
 
-uint32_t g_1msCycles;
+uint32_t g_ui32WaitingPeriodUs;
 
 // update firmware process
+bool g_bLostPacket;
 uint8_t ui8RxLength;
 uint8_t pui8RfBuffer[BSL_PACKET_FULL_LENGTH];
 
@@ -145,24 +152,52 @@ uint32_t convertByteToUINT32(uint8_t data[])
   return result;
 }
 
-uint8_t waitForRfPacket(uint32_t ui32TimeOut, uint8_t *pui8RfBuffer)
+uint8_t waitForRfPacket(uint32_t ui32TimeOutUs, uint8_t *pui8RfBuffer)
 {
-  uint32_t ui32BootTime = 0;
+  e_RxStatus eStatus;
+  uint32_t ui32Status = 0;
 
-  while (ui32BootTime < ui32TimeOut)
+  ui32TimeOutUs = ROM_SysCtlClockGet() / 1000000 * ui32TimeOutUs;
+  if(g_bLostPacket)
   {
-    if (GPIOIntStatus(CC2500_INT_PORT, false) & CC2500_INT_Pin)  // TI_CC_IsInterruptPinAsserted()
-    {
-      GPIOIntClear(CC2500_INT_PORT, CC2500_INT_Pin); // TI_CC_ClearIntFlag();
+	// Extract +20% = 120% period delay
+	ui32TimeOutUs = ui32TimeOutUs + (uint32_t)(ui32TimeOutUs / 5);
+  }
 
-	  if (RfReceivePacket(pui8RfBuffer) == RX_STATUS_SUCCESS) {   // Fetch packet from CCxxxx
+  ROM_TimerLoadSet(DELAY_TIMER_BASE_NON_INT, TIMER_A, ui32TimeOutUs);
+  ROM_TimerIntClear(DELAY_TIMER_BASE_NON_INT, TIMER_TIMA_TIMEOUT);
+  ROM_TimerEnable(DELAY_TIMER_BASE_NON_INT, TIMER_A);
+
+  while (true)
+  {
+	if (GPIOIntStatus(CC2500_INT_PORT, false) & CC2500_INT_Pin)  // TI_CC_IsInterruptPinAsserted()
+	{
+	  GPIOIntClear(CC2500_INT_PORT, CC2500_INT_Pin); // TI_CC_ClearIntFlag();
+
+	  eStatus = RfReceivePacket(pui8RfBuffer);
+
+	  if(eStatus == RX_STATUS_SUCCESS)
+	  {
 		  ui8RxLength = pui8RfBuffer[BSL_PACKET_LENGTH_IDX];
+		  g_bLostPacket = false;			// Deassert lost packet flag
 		  return ui8RxLength;
 	  }
-	  TI_CC_Strobe(TI_CCxxx0_SFRX);          // Flush the RX FIFO
+	  else if (eStatus == RX_STATUS_CRC_ERROR)
+	  {
+//		  break;
+	  }
+//	  TI_CC_Strobe(TI_CCxxx0_SFRX);         // Flush the RX FIFO
+	}
+
+	ui32Status = ROM_TimerIntStatus(DELAY_TIMER_BASE_NON_INT, false);
+
+    if (ui32Status & TIMER_TIMA_TIMEOUT)
+    {
+	  ROM_TimerIntClear(DELAY_TIMER_BASE_NON_INT, TIMER_TIMA_TIMEOUT);
+	   break;
     }
-    ui32BootTime++;
   }
+
   return 0;
 }
 
@@ -172,9 +207,8 @@ void MyHwInitFunc(void)
 {
   // Init system clock and RF configuration prepare for CheckForceUpdate
   ROM_FPULazyStackingEnable();
-  ROM_SysCtlClockSet(SYSCTL_SYSDIV_4 | SYSCTL_USE_PLL | SYSCTL_OSC_INT);  // 50MHz
-
-  g_1msCycles = ROM_SysCtlClockGet() / 1000;
+//  ROM_SysCtlClockSet(SYSCTL_SYSDIV_4 | SYSCTL_USE_PLL | SYSCTL_OSC_INT);  // 50MHz
+  ROM_SysCtlClockSet(SYSCTL_SYSDIV_4 | SYSCTL_USE_PLL | SYSCTL_OSC_MAIN | SYSCTL_XTAL_16MHZ);
 
   initRfModule(false);
 
@@ -183,9 +217,17 @@ void MyHwInitFunc(void)
   ROM_GPIOPinTypeGPIOOutput(LED_PORT_BASE, LED_RED | LED_GREEN | LED_BLUE);
   ROM_GPIOPinWrite(LED_PORT_BASE, LED_ALL, LED_RED);
   //------------------------ initLED() END ------------------------
+
+  // Non-interrupt timer delay
+  ROM_SysCtlPeripheralEnable(DELAY_TIMER_CLOCK_NON_INT);
+  TimerClockSourceSet(DELAY_TIMER_BASE_NON_INT, TIMER_CLOCK_SYSTEM);
+  ROM_TimerConfigure(DELAY_TIMER_BASE_NON_INT, TIMER_CFG_ONE_SHOT);
+
+  ROM_TimerIntEnable(DELAY_TIMER_BASE_NON_INT, TIMER_TIMA_TIMEOUT);
+  ROM_TimerIntClear(DELAY_TIMER_BASE_NON_INT, TIMER_TIMA_TIMEOUT);
 }
 
-int main(void)
+int main(void) // CheckForceUpdate
 {
   // where the return code is 0 if the boot loader should boot the existing
   // image (if found) or non-zero to indicate that the boot loader should retain
@@ -195,9 +237,9 @@ int main(void)
   //return 0; 	/* CallApplication */
 
   uint8_t ui8CheckSum;
-  uint32_t ui32TimeOut = BSL_WAIT_TIME * g_1msCycles;
+  g_bLostPacket = false;
 
-  ui8RxLength = waitForRfPacket(ui32TimeOut, pui8RfBuffer);
+  ui8RxLength = waitForRfPacket(BSL_WAIT_TIME_US, pui8RfBuffer);
 
   if (ui8RxLength == BSL_START_PACKET_LENGTH)
   {
@@ -213,7 +255,7 @@ int main(void)
 	if (pui8RfBuffer[BOOTLOADER_COMMAND_IDX] == BSL_START_COMMAND && ui8CheckSum == 0x00)
     {
       g_ui32TransferSize = convertByteToUINT32(&pui8RfBuffer[TRANSFER_SIZE_IDX]);
-      g_1msCycles = convertByteToUINT32(&pui8RfBuffer[WAIT_TIME_IDX]);
+      g_ui32WaitingPeriodUs = convertByteToUINT32(&pui8RfBuffer[WAIT_TIME_IDX]);
       return 1; /* EnterBootLoader */
     }
   }
@@ -232,6 +274,7 @@ int main(void)
     while (1);
   }
 
+  ROM_SysCtlPeripheralDisable(DELAY_TIMER_CLOCK_NON_INT);
   ROM_SSIDisable(CC2500_SPI);
   ROM_SysCtlPeripheralDisable(CC2500_SPI_PORT_CLOCK);
   ROM_SysCtlPeripheralDisable(CC2500_INT_PORT_CLOCK);
@@ -263,14 +306,12 @@ inline void ExitBootloader(void)
 
 void NACK(void)
 {
-  //uint8_t txBuffer[2] = { 1, 0x00 }; // NACK Packet
-
   pui8RfBuffer[0] = BSL_NACK_PACKET_LENGTH - 1;
 
-  ROM_GPIOPinWrite(LED_PORT_BASE, LED_ALL, LED_GREEN);
+//  Delay 1ms
+  ROM_SysCtlDelay(ROM_SysCtlClockGet() / 1000);
 
-  // ROM_SysCtlDelay(833333); // 250000/3 ~5ms
-  ROM_SysCtlDelay((g_1msCycles << 1) - 20000);
+  ROM_GPIOPinWrite(LED_PORT_BASE, LED_GREEN, LED_GREEN);
 
   TI_CC_Strobe(TI_CCxxx0_SIDLE);
   RfWriteBurstReg(TI_CCxxx0_TXFIFO, pui8RfBuffer, BSL_NACK_PACKET_LENGTH); // Write TX data
@@ -281,7 +322,11 @@ void NACK(void)
 
   GPIOIntClear(CC2500_INT_PORT, CC2500_INT_Pin);
 
-  ROM_GPIOPinWrite(LED_PORT_BASE, LED_ALL, 0);
+  g_bLostPacket = true;		// Assert lost packet indicator
+
+  TI_CC_Strobe(TI_CCxxx0_SRX);      // Initialize CCxxxx in RX mode.
+
+  ROM_GPIOPinWrite(LED_PORT_BASE, LED_GREEN, 0);
 }
 
 void Updater(void)
@@ -326,12 +371,13 @@ void Updater(void)
   {
     ROM_GPIOPinWrite(LED_PORT_BASE, LED_ALL, LED_BLUE);
 
-    ui8RxLength = waitForRfPacket(g_1msCycles, pui8RfBuffer);
+    ui8RxLength = waitForRfPacket(g_ui32WaitingPeriodUs, pui8RfBuffer);
 
-    if (ui8RxLength > 0 && ui8RxLength < BSL_PACKET_FULL_LENGTH)
+    if (ui8RxLength > BSL_PAKCET_HEADER_LENGTH && ui8RxLength < BSL_PACKET_FULL_LENGTH)
     {
       ui32ReceivedAddress = convertByteToUINT32(&pui8RfBuffer[BSL_PACKET_ADDRESS_IDX]);
       ui32ByteCount = pui8RfBuffer[BSL_PACKET_BYTECOUNT_IDX];
+
       // Is this a new packet?
       if (ui32ReceivedAddress == ui32ExpectedAddress)
       {
@@ -378,6 +424,7 @@ void Updater(void)
       
       if (ui32ReceivedAddress > ui32ExpectedAddress)
       {
+    	ROM_GPIOPinWrite(LED_PORT_BASE, LED_RED, LED_RED);
         NACK();
         continue;
       }
@@ -392,8 +439,11 @@ void Updater(void)
     }
     else
     {
-      // time out
-      NACK();
+      if (ui8RxLength == 0)	// time out
+      {
+    	  //ROM_GPIOPinWrite(LED_PORT_BASE, LED_RED, LED_RED);
+    	  NACK();
+      }
       continue;
     }
   }
