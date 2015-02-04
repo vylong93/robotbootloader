@@ -42,16 +42,20 @@
 #include "boot_loader/bl_crc32.h"
 #endif
 
-//#include "libnrf24l01/inc/TM4C123_nRF24L01.h"
-//#include "libnrf24l01/inc/nRF24L01.h"
-
+#ifdef RF_USE_CC2500
 #include "libcc2500/inc/TM4C123_CC2500.h"
-#include "libcc2500/inc/CC2500.h"
+#include "libcc2500/inc/cc2500.h"
+#endif
+
+#ifdef RF_USE_nRF24L01
+#include "libnrf24l01/inc/nRF24L01.h"
+#include "libnrf24l01/inc/TM4C123_nRF24L01.h"
+#endif
 
 extern void StartApplication(void);
 
-void TI_CC_IRQ_handler(void);
-void TI_CC_IRQ_handler(void){}
+void MCU_RF_IRQ_handler(void);
+void MCU_RF_IRQ_handler(void){}
 
 //*****************************************************************************
 //
@@ -122,7 +126,7 @@ typedef enum
 #define BSL_PACKET_CHECKSUM
 
 #define BSL_PAKCET_HEADER_LENGTH	7	// Smallest valid packet: <4b Addr><1b cout><1b data><2b checksum>
-#define BSL_NACK_PACKET_LENGTH		4	// must be less than BSL_PAKCET_HEADER_LENGTH
+#define BSL_NACK_PACKET_LENGTH		2	// must be less than BSL_PAKCET_HEADER_LENGTH
 
 #define LED_PORT_BASE           GPIO_PORTF_BASE
 #define LED_PORT_CLOCK          SYSCTL_PERIPH_GPIOF
@@ -170,9 +174,9 @@ uint8_t waitForRfPacket(uint32_t ui32TimeOutUs, uint8_t *pui8RfBuffer)
 
   while (true)
   {
-	if (GPIOIntStatus(CC2500_INT_PORT, false) & CC2500_INT_Pin)  // TI_CC_IsInterruptPinAsserted()
+	if ((GPIOIntStatus(RF24_INT_PORT, false) & RF24_INT_Pin) == RF24_INT_Pin)  // MCU_RF_IsInterruptPinAsserted()
 	{
-	  GPIOIntClear(CC2500_INT_PORT, CC2500_INT_Pin); // TI_CC_ClearIntFlag();
+	  GPIOIntClear(RF24_INT_PORT, RF24_INT_Pin); // MCU_RF_ClearIntFlag();
 
 	  eStatus = RfReceivePacket(pui8RfBuffer);
 
@@ -182,11 +186,6 @@ uint8_t waitForRfPacket(uint32_t ui32TimeOutUs, uint8_t *pui8RfBuffer)
 		  g_bLostPacket = false;			// Deassert lost packet flag
 		  return ui8RxLength;
 	  }
-	  else if (eStatus == RX_STATUS_CRC_ERROR)
-	  {
-//		  break;
-	  }
-//	  TI_CC_Strobe(TI_CCxxx0_SFRX);         // Flush the RX FIFO
 	}
 
 	ui32Status = ROM_TimerIntStatus(DELAY_TIMER_BASE_NON_INT, false);
@@ -275,11 +274,21 @@ int main(void) // CheckForceUpdate
   }
 
   ROM_SysCtlPeripheralDisable(DELAY_TIMER_CLOCK_NON_INT);
+  ROM_SysCtlPeripheralDisable(LED_PORT_CLOCK);
+
+#ifdef RF_USE_CC2500
   ROM_SSIDisable(CC2500_SPI);
   ROM_SysCtlPeripheralDisable(CC2500_SPI_PORT_CLOCK);
   ROM_SysCtlPeripheralDisable(CC2500_INT_PORT_CLOCK);
   ROM_SysCtlPeripheralDisable(CC2500_SPI_CLOCK);
-  ROM_SysCtlPeripheralDisable(LED_PORT_CLOCK);
+#endif
+#ifdef RF_USE_nRF24L01
+  ROM_SSIDisable(RF24_SPI);
+  ROM_SysCtlPeripheralDisable(RF24_SPI_PORT_CLOCK);
+  ROM_SysCtlPeripheralDisable(RF24_INT_PORT_CLOCK);
+  ROM_SysCtlPeripheralDisable(RF24_SPI_CLOCK);
+#endif
+
   return 0; /* CallApplication */
 }
 
@@ -307,12 +316,14 @@ inline void ExitBootloader(void)
 void NACK(void)
 {
   pui8RfBuffer[0] = BSL_NACK_PACKET_LENGTH - 1;
+  pui8RfBuffer[1] = 0xFA;
 
-//  Delay 1ms
+  //  Delay 1ms
   ROM_SysCtlDelay(ROM_SysCtlClockGet() / 1000);
 
   ROM_GPIOPinWrite(LED_PORT_BASE, LED_GREEN, LED_GREEN);
 
+#ifdef RF_USE_CC2500
   TI_CC_Strobe(TI_CCxxx0_SIDLE);
   RfWriteBurstReg(TI_CCxxx0_TXFIFO, pui8RfBuffer, BSL_NACK_PACKET_LENGTH); // Write TX data
   TI_CC_Strobe(TI_CCxxx0_STX);
@@ -322,9 +333,13 @@ void NACK(void)
 
   GPIOIntClear(CC2500_INT_PORT, CC2500_INT_Pin);
 
-  g_bLostPacket = true;		// Assert lost packet indicator
-
   TI_CC_Strobe(TI_CCxxx0_SRX);      // Initialize CCxxxx in RX mode.
+#endif
+#ifdef RF_USE_nRF24L01
+  	RfSendPacket(pui8RfBuffer);
+#endif
+
+  g_bLostPacket = true;		// Assert lost packet indicator
 
   ROM_GPIOPinWrite(LED_PORT_BASE, LED_GREEN, 0);
 }
@@ -442,7 +457,7 @@ void Updater(void)
       if (ui8RxLength == 0)	// time out
       {
     	  //ROM_GPIOPinWrite(LED_PORT_BASE, LED_RED, LED_RED);
-    	  NACK();
+    	  //NACK();
       }
       continue;
     }
