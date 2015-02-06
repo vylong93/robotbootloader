@@ -447,7 +447,7 @@ void Updater(void)
       if (ui8RxLength == 0)	// time out
       {
     	  //ROM_GPIOPinWrite(LED_PORT_BASE, LED_RED, LED_RED);
-    	  NACK();
+//    	  NACK();
       }
       continue;
     }
