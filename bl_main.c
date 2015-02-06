@@ -140,7 +140,6 @@ uint32_t g_ui32TransferSize;
 uint32_t g_ui32WaitingPeriodUs;
 
 // update firmware process
-bool g_bLostPacket;
 uint8_t ui8RxLength;
 uint8_t pui8RfBuffer[BSL_PACKET_FULL_LENGTH];
 
@@ -162,11 +161,6 @@ uint8_t waitForRfPacket(uint32_t ui32TimeOutUs, uint8_t *pui8RfBuffer)
   uint32_t ui32Status = 0;
 
   ui32TimeOutUs = ROM_SysCtlClockGet() / 1000000 * ui32TimeOutUs;
-  if(g_bLostPacket)
-  {
-	// Extract +20% = 120% period delay
-	ui32TimeOutUs = ui32TimeOutUs + (uint32_t)(ui32TimeOutUs / 5);
-  }
 
   ROM_TimerLoadSet(DELAY_TIMER_BASE_NON_INT, TIMER_A, ui32TimeOutUs);
   ROM_TimerIntClear(DELAY_TIMER_BASE_NON_INT, TIMER_TIMA_TIMEOUT);
@@ -183,7 +177,6 @@ uint8_t waitForRfPacket(uint32_t ui32TimeOutUs, uint8_t *pui8RfBuffer)
 	  if(eStatus == RX_STATUS_SUCCESS)
 	  {
 		  ui8RxLength = pui8RfBuffer[BSL_PACKET_LENGTH_IDX];
-		  g_bLostPacket = false;			// Deassert lost packet flag
 		  return ui8RxLength;
 	  }
 	}
@@ -206,8 +199,8 @@ void MyHwInitFunc(void)
 {
   // Init system clock and RF configuration prepare for CheckForceUpdate
   ROM_FPULazyStackingEnable();
-//  ROM_SysCtlClockSet(SYSCTL_SYSDIV_4 | SYSCTL_USE_PLL | SYSCTL_OSC_INT);  // 50MHz
-  ROM_SysCtlClockSet(SYSCTL_SYSDIV_4 | SYSCTL_USE_PLL | SYSCTL_OSC_MAIN | SYSCTL_XTAL_16MHZ);
+  ROM_SysCtlClockSet(SYSCTL_SYSDIV_4 | SYSCTL_USE_PLL | SYSCTL_OSC_INT);  // 50MHz internal
+//  ROM_SysCtlClockSet(SYSCTL_SYSDIV_4 | SYSCTL_USE_PLL | SYSCTL_OSC_MAIN | SYSCTL_XTAL_16MHZ);
 
   initRfModule(false);
 
@@ -236,7 +229,6 @@ int main(void) // CheckForceUpdate
   //return 0; 	/* CallApplication */
 
   uint8_t ui8CheckSum;
-  g_bLostPacket = false;
 
   ui8RxLength = waitForRfPacket(BSL_WAIT_TIME_US, pui8RfBuffer);
 
@@ -338,8 +330,6 @@ void NACK(void)
 #ifdef RF_USE_nRF24L01
   	RfSendPacket(pui8RfBuffer);
 #endif
-
-  g_bLostPacket = true;		// Assert lost packet indicator
 
   ROM_GPIOPinWrite(LED_PORT_BASE, LED_GREEN, 0);
 }
@@ -457,7 +447,7 @@ void Updater(void)
       if (ui8RxLength == 0)	// time out
       {
     	  //ROM_GPIOPinWrite(LED_PORT_BASE, LED_RED, LED_RED);
-    	  //NACK();
+    	  NACK();
       }
       continue;
     }
