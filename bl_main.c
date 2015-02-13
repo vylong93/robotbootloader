@@ -30,6 +30,7 @@
 #include "inc/hw_ssi.h"
 #include "inc/hw_sysctl.h"
 #include "inc/hw_types.h"
+#include "driverlib/eeprom.h"
 #include "driverlib/rom.h"
 #include "driverlib/gpio.h"
 #include "driverlib/sysctl.h"
@@ -135,9 +136,15 @@ typedef enum
 #define LED_BLUE                GPIO_PIN_2
 #define LED_GREEN               GPIO_PIN_3
 
-uint32_t g_ui32TransferSize;
+#define EEPROM_RANDOM_W_WORD_IDX		19		// 0x004C
+#define EEPROM_RANDOM_W_WORD_ADDRESS	0x004C	// (EEPROM_RANDOM_WORD_IDX << 2)
 
+uint32_t g_ui32TransferSize;
+uint32_t g_ui32RobotId;
 uint32_t g_ui32WaitingPeriodUs;
+
+uint32_t g_ui32RandomW;
+uint32_t g_ui32RandomWIndex;
 
 // update firmware process
 uint8_t ui8RxLength;
@@ -287,6 +294,14 @@ int main(void) // CheckForceUpdate
 void ConfigureDevice(void)
 {
   ROM_GPIOPinWrite(LED_PORT_BASE, LED_ALL, 0);
+
+  // Init EEPROM
+  ROM_SysCtlPeripheralEnable(SYSCTL_PERIPH_EEPROM0);
+  while (ROM_EEPROMInit() != EEPROM_INIT_OK);
+  ROM_EEPROMIntDisable(EEPROM_INT_PROGRAM);
+
+  EEPROMRead(&g_ui32RandomW, EEPROM_RANDOM_W_WORD_ADDRESS, 4);
+  g_ui32RandomWIndex = 0;
 }
 
 inline void ExitBootloader(void)
@@ -307,11 +322,16 @@ inline void ExitBootloader(void)
 
 void NACK(void)
 {
-  pui8RfBuffer[0] = BSL_NACK_PACKET_LENGTH - 1;
-  pui8RfBuffer[1] = 0xFA;
+  uint8_t ui8Random = (g_ui32RandomW >> (4 * g_ui32RandomWIndex)) & 0x0000000F;
+  g_ui32RandomWIndex++;
+  g_ui32RandomWIndex &= 0x07;
 
-  //  Delay 1ms
-  ROM_SysCtlDelay(ROM_SysCtlClockGet() / 1000);
+  pui8RfBuffer[0] = BSL_NACK_PACKET_LENGTH - 1;
+  pui8RfBuffer[1] = ui8Random;
+
+  //  Delay 1ms * 3 + 50us * 3 * random
+  SysCtlDelay((SysCtlClockGet() / 1000) + ((SysCtlClockGet() / 20000) * ui8Random));
+
 
   ROM_GPIOPinWrite(LED_PORT_BASE, LED_GREEN, LED_GREEN);
 
