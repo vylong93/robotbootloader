@@ -1068,11 +1068,11 @@ OUTPUT(BootloaderRFV4.out elf32-littlearm)
  .comment       0x00000000       0x2c D:/Program Files/TI/TivaWare_C_Series-2.1.0.12573/driverlib/gcc\libdriver.a(timer.o)
  .comment       0x00000000       0x2c D:/Program Files/TI/TivaWare_C_Series-2.1.0.12573/driverlib/gcc\libdriver.a(cpu.o)
 
-.debug_info     0x00000000     0x1244
+.debug_info     0x00000000     0x124b
  .debug_info    0x00000000      0x393 ./bl_main.o
- .debug_info    0x00000393       0x7b ./bl_startup_gcc.o
- .debug_info    0x0000040e      0x23f ./libnrf24l01/src/TM4C123_nRF24L01.o
- .debug_info    0x0000064d      0xbf7 ./libnrf24l01/src/nRF24L01.o
+ .debug_info    0x00000393       0x82 ./bl_startup_gcc.o
+ .debug_info    0x00000415      0x23f ./libnrf24l01/src/TM4C123_nRF24L01.o
+ .debug_info    0x00000654      0xbf7 ./libnrf24l01/src/nRF24L01.o
 
 .debug_abbrev   0x00000000      0x42a
  .debug_abbrev  0x00000000      0x12e ./bl_main.o
@@ -1095,21 +1095,21 @@ OUTPUT(BootloaderRFV4.out elf32-littlearm)
  .debug_aranges
                 0x00000110      0x190 ./libnrf24l01/src/nRF24L01.o
 
-.debug_line     0x00000000      0xb11
+.debug_line     0x00000000      0xb18
  .debug_line    0x00000000      0x222 ./bl_main.o
  .debug_line    0x00000222       0x92 ./bl_startup_gcc.o
  .debug_line    0x000002b4      0x1fd ./libnrf24l01/src/TM4C123_nRF24L01.o
- .debug_line    0x000004b1      0x660 ./libnrf24l01/src/nRF24L01.o
- .debug_line    0x00000b11        0x0 ./libcc2500/src/TM4C123_CC2500.o
- .debug_line    0x00000b11        0x0 ./libcc2500/src/cc2500.o
+ .debug_line    0x000004b1      0x667 ./libnrf24l01/src/nRF24L01.o
+ .debug_line    0x00000b18        0x0 ./libcc2500/src/TM4C123_CC2500.o
+ .debug_line    0x00000b18        0x0 ./libcc2500/src/cc2500.o
 
-.debug_str      0x00000000      0xb6c
- .debug_str     0x00000000      0x3fc ./bl_main.o
-                                0x438 (size before relaxing)
- .debug_str     0x000003fc      0x180 ./libnrf24l01/src/TM4C123_nRF24L01.o
-                                0x2a8 (size before relaxing)
- .debug_str     0x0000057c      0x5f0 ./libnrf24l01/src/nRF24L01.o
-                                0x7c9 (size before relaxing)
+.debug_str      0x00000000      0xb73
+ .debug_str     0x00000000      0x403 ./bl_main.o
+                                0x43f (size before relaxing)
+ .debug_str     0x00000403      0x180 ./libnrf24l01/src/TM4C123_nRF24L01.o
+                                0x2af (size before relaxing)
+ .debug_str     0x00000583      0x5f0 ./libnrf24l01/src/nRF24L01.o
+                                0x7d0 (size before relaxing)
 
 .debug_frame    0x00000000      0xa08
  .debug_frame   0x00000000      0x114 ./bl_main.o

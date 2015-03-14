@@ -1,5 +1,5 @@
 libnrf24l01/src/nRF24L01.d: ../libnrf24l01/src/nRF24L01.c \
- E:/00\ SwarmRobot/Workspace/SVN/BootloaderRFv1/trunk/libnrf24l01/inc/TM4C123_nRF24L01.h \
+ E:/00\ SwarmRobot/Workspace/SVN/GitHub_BootloaderRFv1/trunk/libnrf24l01/inc/TM4C123_nRF24L01.h \
  D:/Program\ Files/TI/TivaWare_C_Series-2.1.0.12573/inc/hw_memmap.h \
  D:/Program\ Files/TI/TivaWare_C_Series-2.1.0.12573/inc/hw_types.h \
  D:/Program\ Files/TI/TivaWare_C_Series-2.1.0.12573/inc/hw_gpio.h \
@@ -14,9 +14,9 @@ libnrf24l01/src/nRF24L01.d: ../libnrf24l01/src/nRF24L01.c \
  D:/Program\ Files/TI/TivaWare_C_Series-2.1.0.12573/driverlib/sysctl.h \
  D:/Program\ Files/TI/TivaWare_C_Series-2.1.0.12573/driverlib/systick.h \
  D:/Program\ Files/TI/TivaWare_C_Series-2.1.0.12573/driverlib/ssi.h \
- E:/00\ SwarmRobot/Workspace/SVN/BootloaderRFv1/trunk/libnrf24l01/inc/nRF24L01.h
+ E:/00\ SwarmRobot/Workspace/SVN/GitHub_BootloaderRFv1/trunk/libnrf24l01/inc/nRF24L01.h
 
-E:/00\ SwarmRobot/Workspace/SVN/BootloaderRFv1/trunk/libnrf24l01/inc/TM4C123_nRF24L01.h:
+E:/00\ SwarmRobot/Workspace/SVN/GitHub_BootloaderRFv1/trunk/libnrf24l01/inc/TM4C123_nRF24L01.h:
 
 D:/Program\ Files/TI/TivaWare_C_Series-2.1.0.12573/inc/hw_memmap.h:
 
@@ -46,4 +46,4 @@ D:/Program\ Files/TI/TivaWare_C_Series-2.1.0.12573/driverlib/systick.h:
 
 D:/Program\ Files/TI/TivaWare_C_Series-2.1.0.12573/driverlib/ssi.h:
 
-E:/00\ SwarmRobot/Workspace/SVN/BootloaderRFv1/trunk/libnrf24l01/inc/nRF24L01.h:
+E:/00\ SwarmRobot/Workspace/SVN/GitHub_BootloaderRFv1/trunk/libnrf24l01/inc/nRF24L01.h:

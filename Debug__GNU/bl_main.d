@@ -21,7 +21,7 @@ bl_main.d: ../bl_main.c \
  D:/Program\ Files/TI/TivaWare_C_Series-2.1.0.12573/driverlib/pin_map.h \
  D:/Program\ Files/TI/TivaWare_C_Series-2.1.0.12573/driverlib/systick.h \
  D:/Program\ Files/TI/TivaWare_C_Series-2.1.0.12573/driverlib/ssi.h \
- E:/00\ SwarmRobot/Workspace/SVN/BootloaderRFv1/trunk/libnrf24l01/inc/nRF24L01.h
+ E:/00\ SwarmRobot/Workspace/SVN/GitHub_BootloaderRFv1/trunk/libnrf24l01/inc/nRF24L01.h
 
 D:/Program\ Files/TI/TivaWare_C_Series-2.1.0.12573/inc/hw_gpio.h:
 
@@ -69,4 +69,4 @@ D:/Program\ Files/TI/TivaWare_C_Series-2.1.0.12573/driverlib/systick.h:
 
 D:/Program\ Files/TI/TivaWare_C_Series-2.1.0.12573/driverlib/ssi.h:
 
-E:/00\ SwarmRobot/Workspace/SVN/BootloaderRFv1/trunk/libnrf24l01/inc/nRF24L01.h:
+E:/00\ SwarmRobot/Workspace/SVN/GitHub_BootloaderRFv1/trunk/libnrf24l01/inc/nRF24L01.h:
