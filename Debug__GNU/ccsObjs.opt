@@ -1,0 +1,1 @@
+"./bl_main.o" "./bl_startup_gcc.o" "./libnrf24l01/src/TM4C123_nRF24L01.o" "./libnrf24l01/src/nRF24L01.o" "./libcc2500/src/TM4C123_CC2500.o" "./libcc2500/src/cc2500.o" -Wl,-T"../tm4c123gh6pm.ld" -Wl,--start-group -l"c" -l"driver" -l"gcc" -l"nosys" -Wl,--end-group 

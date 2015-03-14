@@ -1,0 +1,1 @@
+"./bl_main.obj" "./bl_startup_ccs.obj" "./libnrf24l01/src/TM4C123_nRF24L01.obj" "./libnrf24l01/src/nRF24L01.obj" "./libcc2500/src/TM4C123_CC2500.obj" "./libcc2500/src/cc2500.obj" "../bl_link_ccs.cmd" -l"D:\Program Files\TI\TivaWare_C_Series-2.1.0.12573\driverlib\ccs\Debug\driverlib.lib" -l"libc.a" 
