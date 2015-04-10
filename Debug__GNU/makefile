@@ -4,7 +4,7 @@
 
 SHELL = cmd.exe
 
-CG_TOOL_ROOT := D:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3
+CG_TOOL_ROOT := E:/ProgramFiles/TI/ccsv6/tools/compiler/gcc-arm-none-eabi-4_8-2014q3
 
 ORDERED_OBJS += \
 "./bl_main.o" \
@@ -62,11 +62,11 @@ endif
 ifneq ($(strip $(C67_DEPS)),)
 -include $(C67_DEPS)
 endif
-ifneq ($(strip $(C??_DEPS)),)
--include $(C??_DEPS)
-endif
 ifneq ($(strip $(CLA_DEPS)),)
 -include $(CLA_DEPS)
+endif
+ifneq ($(strip $(C??_DEPS)),)
+-include $(C??_DEPS)
 endif
 ifneq ($(strip $(CPP_DEPS)),)
 -include $(CPP_DEPS)
@@ -95,6 +95,9 @@ endif
 ifneq ($(strip $(C43_DEPS)),)
 -include $(C43_DEPS)
 endif
+ifneq ($(strip $(INO_DEPS)),)
+-include $(INO_DEPS)
+endif
 ifneq ($(strip $(S67_DEPS)),)
 -include $(S67_DEPS)
 endif
@@ -106,6 +109,9 @@ ifneq ($(strip $(S43_DEPS)),)
 endif
 ifneq ($(strip $(OPT_DEPS)),)
 -include $(OPT_DEPS)
+endif
+ifneq ($(strip $(PDE_DEPS)),)
+-include $(PDE_DEPS)
 endif
 ifneq ($(strip $(S64_DEPS)),)
 -include $(S64_DEPS)
@@ -141,14 +147,14 @@ all: BootloaderRFV4.out
 BootloaderRFV4.out: $(OBJS) $(LD_SRCS) $(CMD_SRCS) $(GEN_CMDS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: GNU Linker'
-	"D:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/arm-none-eabi-gcc.exe" -march=armv7e-m -mthumb -mfloat-abi=softfp -mfpu=fpv4-sp-d16 -DPART_TM4C123GH6PM -Dgcc -DTARGET_IS_BLIZZARD_RB1 -DRF_USE_nRF24L01 -O0 -ffunction-sections -fdata-sections -g -gstrict-dwarf -Wall -Wl,-Map,"BootloaderRFV4.map" -Wl,--gc-sections -L"D:/Program Files/TI/TivaWare_C_Series-2.1.0.12573/driverlib/gcc" -o"BootloaderRFV4.out" $(ORDERED_OBJS)
+	"E:/ProgramFiles/TI/ccsv6/tools/compiler/gcc-arm-none-eabi-4_8-2014q3/bin/arm-none-eabi-gcc.exe" -march=armv7e-m -mthumb -mfloat-abi=softfp -mfpu=fpv4-sp-d16 -DPART_TM4C123GH6PM -Dgcc -DTARGET_IS_BLIZZARD_RB1 -DRF_USE_nRF24L01 -O0 -ffunction-sections -fdata-sections -g -gstrict-dwarf -Wall -Wl,-Map,"BootloaderRFV4.map" -Wl,--gc-sections -L"E:/ProgramFiles/TI/TivaWare_C_Series-2.1.0.12573/driverlib/gcc" -o"BootloaderRFV4.out" $(ORDERED_OBJS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 	@$(MAKE) --no-print-directory post-build
 
 BootloaderRFV4.hex: $(EXE_OUTPUTS)
 	@echo 'Invoking: GNU Objcopy Utility'
-	"D:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/arm-none-eabi-objcopy.exe"  $(EXE_OUTPUTS__QUOTED) "BootloaderRFV4.hex"
+	"E:/ProgramFiles/TI/ccsv6/tools/compiler/gcc-arm-none-eabi-4_8-2014q3/bin/arm-none-eabi-objcopy.exe"  $(EXE_OUTPUTS__QUOTED) "BootloaderRFV4.hex"
 	@echo 'Finished building: $@'
 	@echo ' '
 

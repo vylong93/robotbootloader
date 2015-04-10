@@ -4,10 +4,9 @@
 
 SHELL = cmd.exe
 
-CG_TOOL_ROOT := D:/ti/ccsv6/tools/compiler/arm_5.1.6
+CG_TOOL_ROOT := E:/ProgramFiles/TI/ccsv6/tools/compiler/ti-cgt-arm_5.2.2
 
 ORDERED_OBJS += \
-$(GEN_CMDS__FLAG) \
 "./bl_main.obj" \
 "./bl_startup_ccs.obj" \
 "./libnrf24l01/src/TM4C123_nRF24L01.obj" \
@@ -15,6 +14,7 @@ $(GEN_CMDS__FLAG) \
 "./libcc2500/src/TM4C123_CC2500.obj" \
 "./libcc2500/src/cc2500.obj" \
 "../bl_link_ccs.cmd" \
+$(GEN_CMDS__FLAG) \
 -l"D:\Program Files\TI\TivaWare_C_Series-2.1.0.12573\driverlib\ccs\Debug\driverlib.lib" \
 -l"libc.a" \
 
@@ -58,11 +58,11 @@ endif
 ifneq ($(strip $(C67_DEPS)),)
 -include $(C67_DEPS)
 endif
-ifneq ($(strip $(C??_DEPS)),)
--include $(C??_DEPS)
-endif
 ifneq ($(strip $(CLA_DEPS)),)
 -include $(CLA_DEPS)
+endif
+ifneq ($(strip $(C??_DEPS)),)
+-include $(C??_DEPS)
 endif
 ifneq ($(strip $(CPP_DEPS)),)
 -include $(CPP_DEPS)
@@ -91,6 +91,9 @@ endif
 ifneq ($(strip $(C43_DEPS)),)
 -include $(C43_DEPS)
 endif
+ifneq ($(strip $(INO_DEPS)),)
+-include $(INO_DEPS)
+endif
 ifneq ($(strip $(S67_DEPS)),)
 -include $(S67_DEPS)
 endif
@@ -102,6 +105,9 @@ ifneq ($(strip $(S43_DEPS)),)
 endif
 ifneq ($(strip $(OPT_DEPS)),)
 -include $(OPT_DEPS)
+endif
+ifneq ($(strip $(PDE_DEPS)),)
+-include $(PDE_DEPS)
 endif
 ifneq ($(strip $(S64_DEPS)),)
 -include $(S64_DEPS)
@@ -137,13 +143,13 @@ all: BootloaderRFV4.out
 BootloaderRFV4.out: $(OBJS) $(LD_SRCS) $(CMD_SRCS) $(GEN_CMDS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: ARM Linker'
-	"D:/ti/ccsv6/tools/compiler/arm_5.1.6/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 --abi=eabi -me -Ooff -g --gcc --define=ccs --define=PART_TM4C123GH6PM --define=TARGET_IS_BLIZZARD_RB1 --display_error_number --diag_warning=225 --diag_wrap=off -z -m"BootloaderRFV4.map" --heap_size=512 --stack_size=1024 -i"D:/ti/ccsv6/tools/compiler/arm_5.1.6/lib" -i"D:/ti/ccsv6/tools/compiler/arm_5.1.6/include" --reread_libs --warn_sections --display_error_number --diag_wrap=off --xml_link_info="BootloaderRFV4_linkInfo.xml" --rom_model -o "BootloaderRFV4.out" $(ORDERED_OBJS)
+	"E:/ProgramFiles/TI/ccsv6/tools/compiler/ti-cgt-arm_5.2.2/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 --abi=eabi -me -Ooff -g --gcc --define=ccs --define=PART_TM4C123GH6PM --define=TARGET_IS_BLIZZARD_RB1 --display_error_number --diag_warning=225 --diag_wrap=off -z -m"BootloaderRFV4.map" --heap_size=512 --stack_size=1024 -i"E:/ProgramFiles/TI/ccsv6/tools/compiler/ti-cgt-arm_5.2.2/lib" -i"E:/ProgramFiles/TI/ccsv6/tools/compiler/ti-cgt-arm_5.2.2/include" --reread_libs --warn_sections --display_error_number --diag_wrap=off --xml_link_info="BootloaderRFV4_linkInfo.xml" --rom_model -o "BootloaderRFV4.out" $(ORDERED_OBJS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
 BootloaderRFV4.hex: $(EXE_OUTPUTS)
 	@echo 'Invoking: ARM Hex Utility'
-	"D:/ti/ccsv6/tools/compiler/arm_5.1.6/bin/armhex" --intel -o "BootloaderRFV4.hex" $(EXE_OUTPUTS__QUOTED)
+	"E:/ProgramFiles/TI/ccsv6/tools/compiler/ti-cgt-arm_5.2.2/bin/armhex" --intel -o "BootloaderRFV4.hex" $(EXE_OUTPUTS__QUOTED)
 	@echo 'Finished building: $@'
 	@echo ' '
 

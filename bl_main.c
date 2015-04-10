@@ -304,7 +304,7 @@ void ConfigureDevice(void)
   g_ui32RandomWIndex = 0;
 }
 
-inline void ExitBootloader(void)
+void ExitBootloader(void)
 {
   //
   // In case this ever does return and the boot loader is still

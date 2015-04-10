@@ -186,13 +186,13 @@ typedef struct tag_rf24_iniTypeDef
 #define RF24_COMMAND_NOP           		0xFF
 
 /* Available states for the transceiver's state machine */
-#define RF24_STATE_NOTPRESENT  0b00000000
-#define RF24_STATE_POWERDOWN   0b00000001
-#define RF24_STATE_STANDBY_I   0b00000010
-#define RF24_STATE_STANDBY_II  0b00000100
-#define RF24_STATE_PTX         0b00001000
-#define RF24_STATE_PRX         0b00010000
-#define RF24_STATE_TEST        0b00100000
+#define RF24_STATE_NOTPRESENT  0x00		// 0b00000000
+#define RF24_STATE_POWERDOWN   0x01		// 0b00000001
+#define RF24_STATE_STANDBY_I   0x02		// 0b00000010
+#define RF24_STATE_STANDBY_II  0x04		// 0b00000100
+#define RF24_STATE_PTX         0x08		// 0b00001000
+#define RF24_STATE_PRX         0x10		// 0b00010000
+#define RF24_STATE_TEST        0x20		// 0b00100000
 
 /* RF speed settings */
 #define RF24_SPEED_1MBPS    0x00
