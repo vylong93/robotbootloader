@@ -1,1 +1,0 @@
-libcc2500/src/TM4C123_CC2500.d: ../libcc2500/src/TM4C123_CC2500.c
